@@ -240,5 +240,52 @@ class Cqueue:
             return self.lists[self.front:self.rear + 1]
         else:
             return self.lists[self.front:] + self.lists[:self.rear + 1]
-        #이건 순환한 큐이므로 나누어져서 들어가 삽입되어 있다. 그러므로 앞의 것과 뒤의 것을 합쳐서 원소들을 추출해낸다
-        
+        #이건 순환한 큐이므로 나누어져서 들어가 삽입되어 있다. 그러므로 앞의 것과 뒤의 것을 합쳐서 원소들을 추출해낸다.
+
+#5.Hash table
+
+class Hashtable:
+
+    def __init__(self, name, *args):
+        self.name = name
+        #n = range(len(args)) <enumerate> 함수의 존재로 n = 이런 식으로 할 필요가 없다.
+        self.lists = {}
+
+        for i, value in enumerate(args):
+            hash_key = self.hashfunc(value, len(args))
+            self.lists[hash_key] = value
+
+    def hashfunc(self, value, size):
+        return hash(value) % size
+    
+    def show_table(self):
+
+        for key, value in self.lists.items():
+            print(f"key: {key} -> value: {value}")
+#하지만 이 function은 hash함수에 크게 의존한다는 단점이 존재.
+
+#5. Hash table(if hash not)::
+
+class MyHashTable:
+    
+    def __init__(self, name, *args):
+        self.name = name
+        self.lists = {}
+        if not args:
+            raise ValueError("nothing is inserted")
+
+        for i, value in enumerate(args, start=1):
+            self.lists[i] = value #self.lists[i] 이렇게 순서대로 value값으로 저장.
+            #dictionary == {key-value}값 형식으로 저장되어 있으므로 딕셔너리에서 data에 접근하기 위한 식별자 자체가 key
+
+    def get(self, key):
+        return self.lists.get(key, "key not found")
+    #get 메서드 == 첫번쨰 인자가 찾을 키. 두번째 인자는 못찾을 경우 반환할 기본값.
+      
+    def show_table(self):
+        for key, value in self.lists.items(): #키와 값을 쌍으로 반환.(모든 항목에 대해 iterate)
+            print(f"key: {key} -> value: {value}")
+
+ad = MyHashTable("hello", 3, 4 ,5, 6)
+ad.show_table()
+
