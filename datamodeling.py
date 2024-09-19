@@ -168,4 +168,77 @@ class Queue:
             return self.lists[self.name]
         else:
             raise IndexError("empty queue")
+#4-1. Linear Queue
+class Queue1:
+
+    def __init__(self, name, args):
+        self.name = name
+        n = len(args)
+        mylist = list(args) + [None] * 3
+
+        self.lists = {}
+
+        if not args:
+            raise ValueError("nothing imported")
+        
+        self.lists[self.name] = mylist
+
+    def make_que(self, value):
+        self.lists[self.name].append(value)
+
+    def dequeue(self):
+        if self.lists[self.name]:
+            rvalue = self.lists[self.name].pop(0)
+            self.lists[self.name].append(None)
+            return rvalue
+        else:
+            raise IndexError("empty")
+    
+    def show(self):
+        return self.lists[self.name]
+       
+#4-2 circle queue
+class Cqueue:
+
+    def __init__(self, name, size, *args):
+        self.name = name
+        self.max_size = size + 3
+        self.lists = [None] * self.max_size
+        self.front = 0
+        self.rear = -1 #-1로 지정하여 마지막 element가 존재하는 곳의 번호를 indexing.
+        self.count = 0 
+
+        for arg in args:
+            self.enqueue(arg)
+
+    def enqueue(self, value):
+        if self.count == self.max_size:
+            self.lists[self.name].append(None)
+        elif self.count >= self.max_size:
+            raise OverflowError("queue is full")
+        
+        self.rear = (self.rear + 1) % self.max_size
+        """etc:: when rear is four, it makes it go to zero"""
+        self.lists[self.rear] = value #rear point 증가 후 실행이므로, 그 바로 다음자리에 원소를 input.
+        self.count += 1
+
+    def dequeue(self):
+        if self.count == 0:
+            raise IndexError("empty")
+        
+        dvalue = self.lists[self.front]
+        self.lists[self.front] = None
+        self.front = (self.front + 1) % self.max_size
+        self.count -= 1
+        return dvalue
+    
+    def show(self):
+        if self.count == 0:
+            return []
+        
+        if self.rear >= self.front:
+            return self.lists[self.front:self.rear + 1]
+        else:
+            return self.lists[self.front:] + self.lists[:self.rear + 1]
+        #이건 순환한 큐이므로 나누어져서 들어가 삽입되어 있다. 그러므로 앞의 것과 뒤의 것을 합쳐서 원소들을 추출해낸다
         
