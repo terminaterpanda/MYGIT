@@ -289,3 +289,29 @@ class MyHashTable:
 ad = MyHashTable("hello", 3, 4 ,5, 6)
 ad.show_table()
 
+#6. Graph
+
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None #이건 다음 노드로의 연결을 정의하고, 기본값을 none.
+
+class MakeNode:
+    def __init__(self, *args):
+        self.lists = {}
+
+        if not args:
+            raise ValueError("nothing is imported")
+        
+        for i, value in enumerate(args, start=1):
+            node = Node(value)
+            self.lists[i] = node 
+
+    def connect(self):
+        nodekey = list(self.lists.keys())
+        #self.lists는 딕셔너리이므로 key값을 가지고 있고, 그 key갑들만 가져와서 list로 생성.
+
+        for i in range(1, len(nodekey)):
+            self.lists[i].next = self.lists[i+1]
+        #반복문으로 node들을 전부 한방향으로 연결.
+           
