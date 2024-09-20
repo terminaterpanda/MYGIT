@@ -289,7 +289,10 @@ class MyHashTable:
 ad = MyHashTable("hello", 3, 4 ,5, 6)
 ad.show_table()
 
+
 #6. Graph
+
+"""directed node"""
 
 class Node:
     def __init__(self, data):
@@ -314,4 +317,37 @@ class MakeNode:
         for i in range(1, len(nodekey)):
             self.lists[i].next = self.lists[i+1]
         #반복문으로 node들을 전부 한방향으로 연결.
-           
+
+class Graph:
+    def __init__(self, make_node):
+        self.start_node = make_node.lists[1]
+
+    def display(self):
+        current = self.start_node
+        #while 반복문을 use해서 next로 쭉 가서 마지막까지 간다.
+        while current:
+            print(current.data, end=" -> ")
+            current = current.next
+        print("nothing") #더이상 반복할 것이 없는 경우에서 이 list형식을 표시.
+
+#6-1 Graph -1
+
+class Node1:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+        self.before = None
+
+class MakeNode2:
+    def __init__(self, *args):
+        self.lists = {}
+
+        if not args:
+            raise ValueError("nothing is implemented")
+        
+        for i, value in enumerate(args, start=1):
+            node = Node1(value)
+            self.lists[i] = node
+            print(self.lists)
+
+MakeNode2(3,4,5)
