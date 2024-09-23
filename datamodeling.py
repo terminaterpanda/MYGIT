@@ -330,6 +330,7 @@ class Graph:
             current = current.next
         print("nothing") #더이상 반복할 것이 없는 경우에서 이 list형식을 표시.
 
+
 #6-1 Graph -1
 
 class Node1:
@@ -348,6 +349,14 @@ class MakeNode2:
         for i, value in enumerate(args, start=1):
             node = Node1(value)
             self.lists[i] = node
-            print(self.lists)
+        print("created nodes:", self.lists)
 
-MakeNode2(3,4,5)
+    def connect_nodes(self, from_idx, to_idx):
+        """node index -> connect them"""
+        if from_idx in self.lists and to_idx in self.lists:
+            self.lists[from_idx].next = self.lists[to_idx]
+            self.lists[to_idx].before = self.lists[from_idx]
+            print("node1 {from_idx} -> node2 {to_idx}")
+        else:
+            raise IndexError("error occured")
+
