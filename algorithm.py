@@ -1,6 +1,9 @@
 # 1. BFS
 
 # 1-1. BFS [with no collections package]
+
+from random import shuffle
+
 class Node:
     def __init__(self, data):
         if not data:
