@@ -286,9 +286,6 @@ class MyHashTable:
         for key, value in self.lists.items(): #키와 값을 쌍으로 반환.(모든 항목에 대해 iterate)
             print(f"key: {key} -> value: {value}")
 
-ad = MyHashTable("hello", 3, 4 ,5, 6)
-ad.show_table()
-
 
 #6. Graph
 
@@ -359,3 +356,82 @@ class MakeNode2:
             print("node1 {from_idx} -> node2 {to_idx}")
         else:
             raise IndexError("error occured")
+
+
+#7. Tree
+
+import random
+class Node:
+    def __init__(self, data):
+        if not data:
+            raise ValueError("error")
+        self.data = data
+        self.neighbors = []
+
+class MakeTreeNode:
+    def __init__(self, *args):
+        if not args:
+            raise ValueError("Error")
+        self.lists = []
+        self.root = None
+
+        for value in args:
+            tree_node = Node(value)
+            self.lists.append(tree_node)
+            #이런 식으로 한 경우에 Tree로 value 인자들을 받아서 구현한다.
+            
+    def ChooseRoot(self):
+        n = len(self.lists)
+        if n == 0:
+            raise ValueError("Error")
+
+        root_index = random.randint(0, n-1)
+        self.root = self.lists[root_index]
+
+        return self.root
+    
+    def CreateLayers(self, *args):
+        if self.root is None:
+            raise ValueError("Error: no root node")
+        
+        layers = [[self.root]]
+        remain_nodes = [node for node in self.lists if node != self.root]
+        #remain_nodes에는 self.root 제외되어 있음.
+        
+        if sum(args) != len(remain_nodes):
+            raise ValueError("Error : sum is not properly defined")
+        
+        layers = []
+        start_index = 0
+
+        for count in args: #count == 현재 층에 포함딜 node 개수
+            if start_index < len(remain_nodes):
+                end_index = start_index + count
+                if end_index > len(remain_nodes):
+                    end_index = len(remain_nodes)
+
+                layers_nodes = remain_nodes[start_index:end_index]
+                #start_index부터 end_index를 해서 이런 식으로 연결을 해준다.
+                layers.append(layers_nodes)
+
+                start_index = end_index
+            
+        return layers
+    #hasattr == "변수(object)의 존재 여부를 확인하는 함수이다.(bool형태로 이루어진다.)"
+    def ConnectLayers(self, layers):
+        for i in range(len(layers)-1):
+            for parent in layers[i]:#layers[i]의 각 노드가 부모 node로 취급된다.
+                for child in layers[i + 1]:
+                    parent.neighbors.append(child)
+
+tree = MakeTreeNode(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)  # 10개의 노드 생성
+tree.ChooseRoot()
+layers = tree.CreateLayers(2, 3, 4)  # 층을 2-3-4로 생성
+tree.ConnectLayers(layers)  # 층 연결
+
+for i, layer in enumerate(layers):
+    print(f"Layer {i + 1}:")
+    for node in layer:
+        neighbors = [neighbor.data for neighbor in node.neighbors]
+        print(f"Node {node.data} -> Neighbors: {neighbors}")
+

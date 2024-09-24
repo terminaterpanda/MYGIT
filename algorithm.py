@@ -272,6 +272,3 @@ class MakeList3:
         stored = self.Quick()
         print(f"list: {stored}")
 
-        
-
-
