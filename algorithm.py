@@ -193,9 +193,29 @@ class MakeList:
         for i in range(n):
             for j in range(0, n-i-1):
                 if self.name[j] > self.name[j+1]:
-                    self.name[j], self.name[j+1] = self.name[j+1], self.name[j]
-
+                    self.name[j], self.name[j+1] = self.name[j+1], self.name[j] 
         print("the sorted list:", self.name)
  
+# 2. 선택정렬(Selection Sort)
 
+class Makelist1:
+    def __init__(self, name, *args):
+        if not args:
+            raise ValueError("error occurred")
+        list2 = list(args)
+        random.shuffle(list2)
+        self.name = list2
 
+    def Selection(self):
+        n = len(self.name)
+        for i in range(n-1): #쭉 반복.(i = 0부터 쭉 n-1까지 지속.)
+
+            min_index = i
+            for j in range(i+1, n):
+                if self.name[j] < self.name[min_index]:
+                    min_index = j
+                    #j는 i+1부터 n까지 쭉 이어져나가는 것이고, indexing 요소로 이루어짐.
+            if min_index != i:
+                self.name[i], self.name[min_index] = self.name[min_index], self.name[i]
+
+        print("sorted list: ", self.name)
