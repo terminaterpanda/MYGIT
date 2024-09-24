@@ -359,4 +359,3 @@ class MakeNode2:
             print("node1 {from_idx} -> node2 {to_idx}")
         else:
             raise IndexError("error occured")
-

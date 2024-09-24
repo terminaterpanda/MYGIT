@@ -243,3 +243,35 @@ class Makelist2:
             self.name[j + 1] = kk
 
         return self.name            
+
+# 4. Quick 정렬
+
+class MakeList3:
+    def __init__(self, name, *args):
+        if not args:
+            raise ValueError("error occurred")
+        list3 = list(args)
+        random.shuffle(list3)
+        self.name = list3
+
+    def Quick(self, a= None): #a = None 설정 이유:(재귀호출을 하는 경우에는 self.name을 직접 수정x)
+        if a is None:
+            a = self.name
+
+        if len(a) <= 1:
+            return a
+    
+        b = a[len(a) // 2]
+        left = [x for x in a if x < b]    #left list
+        middle = [x for x in a if x == b] #middle list
+        right = [x for x in a if x > b]   #right list
+
+        return self.Quick(left) + middle + self.Quick(right) #list 3개의 합인 하나의 리스트가 리턴.
+    
+    def Quicksortprint(self):
+        stored = self.Quick()
+        print(f"list: {stored}")
+
+        
+
+
