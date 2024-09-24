@@ -174,3 +174,28 @@ class MakeNode1:
             for neighbor in reversed(current_node.neighbors):
                 if neighbor not in visited:
                     stack.pushing(neighbor)
+
+# 정렬(sort)
+
+# 1. 버블정렬(Bubble)
+
+import random
+class MakeList:
+    def __init__(self, name, *args):
+        if not args:
+            raise ValueError("error occurred")
+        shuffled_list = list(args)
+        random.shuffle(shuffled_list)
+        self.name = shuffled_list
+        
+    def Bubble(self):
+        n = len(self.name)
+        for i in range(n):
+            for j in range(0, n-i-1):
+                if self.name[j] > self.name[j+1]:
+                    self.name[j], self.name[j+1] = self.name[j+1], self.name[j]
+
+        print("the sorted list:", self.name)
+ 
+
+
