@@ -84,7 +84,6 @@ graph = [
 
 visited = [False] * 9
 
-bfs(graph, 1, visited)
 #dequeue == (양쪽 끝에서 삽입과 삭제를 지원)-> 더 빠른 속도(시간 복잡도)로 수행.
 
 
@@ -219,3 +218,28 @@ class Makelist1:
                 self.name[i], self.name[min_index] = self.name[min_index], self.name[i]
 
         print("sorted list: ", self.name)
+
+
+# 3. 삽입정렬(Insert Sort)
+
+class Makelist2:
+    def __init__(self, name, *args):
+        if not args:
+            raise ValueError("error occurred")
+        list3 = list(args)
+        random.shuffle(list3)
+        self.name = list3
+
+    def insert(self):
+        n = len(self.name)
+        for i in range(1, n):#list의 두번째 요소부터 각 요소를 삽입과정
+            kk = self.name[i] #kk = 2
+            j = i-1 #j == 1
+
+            while j >= 0 and self.name[j] > kk:
+                self.name[j + 1] = self.name[j]
+                j -= 1
+
+            self.name[j + 1] = kk
+
+        return self.name            
