@@ -85,3 +85,92 @@ graph = [
 visited = [False] * 9
 
 bfs(graph, 1, visited)
+#dequeue == (양쪽 끝에서 삽입과 삭제를 지원)-> 더 빠른 속도(시간 복잡도)로 수행.
+
+
+# 2. DFS
+
+class Node:
+    def __init__(self, data):
+        if not data:
+            raise ValueError("nothing is imported")
+        self.data = data
+        self.neighbors = []
+
+class MakeNode:
+    def __init__(self, *args):
+        if not args:
+            raise ValueError("error occured")
+        self.lists = {}
+
+        for i, value in enumerate(args, start=1):
+            current = Node(value)
+            self.lists[i] = current
+    
+    def connect(self, key1, key2):
+        node1 = self.lists[key1]
+        node2 = self.lists[key2]
+
+        node1.neighbors.append(node2)
+        node2.neighbors.append(node1)
+
+    def dfs(self, start_key):
+        if start_key not in self.lists:
+            raise ValueError("error occured")
+        
+        visited = set()
+
+        def dfs_gogo(node):
+            if node in visited:
+                return
+            print(node.data, end=" ")
+            visited.add(node)
+
+            for neighbor in node.neighbors:
+                dfs_gogo(neighbor)
+
+# 2-1. DFS
+
+from datamodeling import Stacker
+
+class Node1:
+    def __init__(self, data):
+        if not data:
+            raise ValueError("nothing is imported")
+        self.data = data
+        self.neighbors = []
+
+class MakeNode1:
+    def __init__(self, *args):
+        if not args:
+            raise ValueError("error occured")
+        self.lists = {}
+
+        for i, value in enumerate(args, start=1):
+            current = Node(value)
+            self.lists[i] = current
+    
+    def connect(self, key1, key2):
+        node1 = self.lists[key1]
+        node2 = self.lists[key2]
+
+        node1.neighbors.append(node2)
+        node2.neighbors.append(node1)
+
+    def dfs_stacker(self, start_key):
+        if start_key not in self.lists:
+            raise ValueError("error occured")
+        
+        visited = set()
+        stack = Stacker("MyStack", self.lists[start_key])
+        
+        while stack.peek_top(): #스택이 비어 있지 않은 동안 반복.
+            current_node = stack.pop()
+
+            if current_node not in visited:
+                print(current_node.data, end="")
+                visited.add(current_node)
+
+            for neighbor in reversed(current_node.neighbors):
+                if neighbor not in visited:
+                    stack.pushing(neighbor)
