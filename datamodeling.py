@@ -394,7 +394,7 @@ class MakeTreeNode:
         if self.root is None:
             raise ValueError("Error: no root node")
         
-        layers = [[self.root]]
+        layers = [[self.root]] #이중 list 구조
         remain_nodes = [node for node in self.lists if node != self.root]
         #remain_nodes에는 self.root 제외되어 있음.
         
@@ -424,6 +424,7 @@ class MakeTreeNode:
                 for child in layers[i + 1]:
                     parent.neighbors.append(child)
 
+
 tree = MakeTreeNode(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)  # 10개의 노드 생성
 tree.ChooseRoot()
 layers = tree.CreateLayers(2, 3, 4)  # 층을 2-3-4로 생성
@@ -435,3 +436,59 @@ for i, layer in enumerate(layers):
         neighbors = [neighbor.data for neighbor in node.neighbors]
         print(f"Node {node.data} -> Neighbors: {neighbors}")
 
+
+# 8. Heap
+
+class Node3:
+    def __init__(self, data):
+        if not data:
+            raise ValueError("error occured")
+        self.data = data
+        self.border = []
+
+
+class HeapNode:
+    def __init__(self, *args):
+        if not args:
+            raise ValueError("args are not imported")
+        self.lists = [] #self.lists 라는 list를 정의
+        self.root = None #self.root 값을 만들고 none을 기본값으로 두기
+
+        for value in args:
+            heap_node = Node3(value) #args의 value개수만큼 heap_node -> self.lists 안에 추가
+            self.lists.append(heap_node)
+
+    def MakeHeapNode(self):
+        n = len(self.lists)
+        if n == 0:
+            raise ValueError("error occured")
+        self.root = max(self.lists, key = lambda x: x.data)
+        #lambda == 파이썬 익명 함수 define.(x == Node3)
+        return self.root
+
+    def CreateNode(self, *args):
+        if self.root is None:
+            raise ValueError("error occured")
+        
+        layers = [[self.root]] #이중 list를 생성해놓음.
+        remain = [node for node in self.lists if node != self.root]
+
+        if sum(args) != len(remain):
+            raise ValueError("error")
+        """lambda 함수는 값을 바로 반환하고 lambda(인자, 함수) == a로 할당하여 불러온다.
+        (한줄로 간단하게 정의할 때 use.)"""
+        layers = []
+        start = 0
+
+        for count in args:
+            if start < len(remain):
+                end_index = start + count
+                if end_index > len(remain):
+                    end_index = len(remain)
+
+                layers_nodes = sorted(remain[start:end_index], key=lambda x: x.data, reverse=True)
+
+                layers.append(layers_nodes)
+                start = end_index
+
+        return layers #층 쌓기는 완료.
