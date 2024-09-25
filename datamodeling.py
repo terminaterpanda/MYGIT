@@ -492,3 +492,23 @@ class HeapNode:
                 start = end_index
 
         return layers #층 쌓기는 완료.
+    
+    def Connect(self, layers):
+        for i in range(self,layers):
+            for parent in layers[i]:
+                for child in layers[i + 1]:
+                    parent.neighbors.append(child)
+
+    def SelfSort(self):
+        queue = [self.root]
+        sorted_values = []
+
+        while queue:
+            now = queue.pop(0)
+            sorted_values.append(now.data)
+
+            for neighbor in now.neighbors:
+                queue.append(neighbor)
+
+        return sorted_values
+    
