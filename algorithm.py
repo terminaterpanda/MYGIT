@@ -271,4 +271,3 @@ class MakeList3:
     def Quicksortprint(self):
         stored = self.Quick()
         print(f"list: {stored}")
-
