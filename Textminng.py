@@ -1,8 +1,9 @@
 import numpy as np
+import re
 import pandas as pd
 from konlpy.tag import Okt
 from sklearn.feature_extraction.text import CountVectorizer
-import re
+from sklearn.preprocessing import OneHotEncoder
 from collections import Counter
 import requests
 from bs4 import BeautifulSoup
@@ -42,7 +43,9 @@ class Scraping:
 """사용법"""
 
 #headers = (useragent name)
+textfile = textfile.replace(".", '')
 
+# text를 평점에 따라서 구분정의.
 textfile_1 = textfile[textfile.point < 5] #580*3 matrix
 textfile_2 = textfile[~textfile.index.isin(textfile_1.index)] #420*3 matrix
 
@@ -54,8 +57,8 @@ okt = Okt()
 texter = " ".join(t1.astype(str))
 texter2 = " ".join(t2.astype(str))
 
-nouns = okt.nouns(texter)
-nouns1 = okt.nouns(texter2)
+nouns = okt.morphs(texter)
+nouns1 = okt.morphs(texter2)
 
 #명사 빈도수 계산
 nouns_freq = pd.Series(nouns).value_counts()
@@ -90,9 +93,22 @@ file_path4 = "/Users/iseong-yong/Desktop/files/positive.csv"
 
 filteredn.to_csv(file_path3, index=False, encoding="utf-8-sig")
 filteredp.to_csv(file_path4, index=False, encoding="utf-8-sig")
+#--------------------------------------------------------------(단어(noun)출현 빈도 분석) <pos vs neg>
 
-#지금 이건 빈도수 분석을 한거고, 내가 필요한 건 one-hot encoding된 것을 써야 되는 거 아녀?
+print(nouns)  #nouns -> vectorize finished한 negative data  (명사로만 구성)
+print(nouns1) #nouns1 -> vectorize finished한 positive data (명사로만 구성)
 
-print(nouns)  #nouns -> vectorize finished한 negative data
-print(nouns1) #nouns1 -> vectorize finished한 positive data
+file_path5 = "/Users/iseong-yong/Desktop/files/negnouns.csv"
+file_path6 = "/Users/iseong-yong/Desktop/files/posnouns.csv"
+
+nouns = pd.DataFrame(nouns)
+nouns1 = pd.DataFrame(nouns1)
+
+nouns.to_csv(file_path5, index = False, encoding = "utf-8-sig")
+nouns1.to_csv(file_path6, index = False, encoding = "utf-8-sig")
+
+#정규식 정의
+
+
+
 
