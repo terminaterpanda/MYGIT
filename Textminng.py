@@ -2,10 +2,15 @@ import numpy as np
 import pandas as pd
 from konlpy.tag import Okt
 from sklearn.feature_extraction.text import CountVectorizer
+import re
 
 file_path1 = "/Users/iseong-yong/Desktop/files/movie1.csv"
  
 textfile = pd.read_csv(file_path1, encoding= "utf-8")
+"""
+with open(file_path1, "r) as file:
+    textfile = file.read() <when not using pandas library>
+"""
 textfile_1 = textfile[textfile.point < 5]
 #580*3 matrix
 textfile_2 = textfile[~textfile.index.isin(textfile_1.index)]
@@ -37,7 +42,12 @@ output_file_path1 = "/Users/iseong-yong/Desktop/files/nouns_frequency_positive.c
 
 nouns_df.to_csv(output_file_path, index=False, encoding='utf-8-sig')
 nouns_df2.to_csv(output_file_path1, index=False, encoding="utf-8-sig")
+#nouns_df == 평점 5점 이하 
+#nouns_df2 == 평점 5 초과 (vector 임베딩)
 
-print(nouns_df.shape)
-print(nouns_df2.shape)
+stopwords = ['이', '있', '하', '것', '들', '그', '되', '수', '이', '보', '않', '없', '나', '사람', '주', '아니', '등', '같', '우리', '때', '년', '가', '한', '지', '대하', '오', '말', '일', '그렇', '위하']
 
+print(len(stopwords))
+
+print(type(nouns_df))
+print(type(nouns_df2))
