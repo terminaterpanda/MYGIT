@@ -3,13 +3,46 @@ import pandas as pd
 from konlpy.tag import Okt
 from sklearn.feature_extraction.text import CountVectorizer
 import re
+from collections import Counter
+import requests
+from bs4 import BeautifulSoup
 
+#예시 file -1
 file_path1 = "/Users/iseong-yong/Desktop/files/movie1.csv" 
 textfile = pd.read_csv(file_path1, encoding= "utf-8")
 """
 with open(file_path1, "r) as file:
     textfile = file.read() <when not using pandas library>
 """
+#기본적인 값을 가지고 올 수 있는 함수 정의.
+
+class Scraping:
+    def __init__(self, url, headers):
+        self.url = url
+        self.headers = headers
+
+    def scrap_save(self, filename):
+        try:
+            res = requests.get(self.url, headers = self.headers)
+            res.raise_for_status() #status를 정의하여 가지고 올 수 있는지를 확인.
+
+            soup = BeautifulSoup(res.text, "lxml")
+            text = soup.get_text(separator='\n', strip=True)
+
+            with open(filename, "w", encoding = "utf-8") as file:
+                file.write(text)
+            
+            print(f"Saved{filename}")
+
+        except requests.exceptions.HTTPError as err:
+            print(f"HTTP error occurred: {err}")
+        except Exception as err:
+            print(f"An error occurred: {err}")
+
+"""사용법"""
+
+#headers = (useragent name)
+
 textfile_1 = textfile[textfile.point < 5] #580*3 matrix
 textfile_2 = textfile[~textfile.index.isin(textfile_1.index)] #420*3 matrix
 
@@ -58,4 +91,8 @@ file_path4 = "/Users/iseong-yong/Desktop/files/positive.csv"
 filteredn.to_csv(file_path3, index=False, encoding="utf-8-sig")
 filteredp.to_csv(file_path4, index=False, encoding="utf-8-sig")
 
+#지금 이건 빈도수 분석을 한거고, 내가 필요한 건 one-hot encoding된 것을 써야 되는 거 아녀?
+
+print(nouns)  #nouns -> vectorize finished한 negative data
+print(nouns1) #nouns1 -> vectorize finished한 positive data
 
