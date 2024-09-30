@@ -158,9 +158,9 @@ y_pos = [1] * len(X_pos)
 X = pd.concat([X_neg, X_pos], ignore_index=True)
 y = y_neg + y_pos
 
-vectorizer = CountVectorizer()
+vectorizer = CountVectorizer() 
 X_Vectorized = vectorizer.fit_transform(X)
-
+# 수치형 data로 입력받아야 하므로 문자열 data를 수치형 배열로 변환시키고 삽입해야 한다.
 X_train, X_test, y_train, y_test = train_test_split(X_Vectorized, y, test_size=0.2, random_state=28)
 
 model = MultinomialNB()
@@ -170,3 +170,13 @@ y_pred = model.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
 print(f"Accuracy: {accuracy * 100:.2f}%")
 
+###########################################################
+
+def predict_sentiment(sentence):
+    sentence = " ".join(okt.morphs(sentence))
+    vectorized_sentence = vectorizer.transform([sentence])
+    return model.predict(vectorized_sentence)[0]
+
+ex0 = "오래도록 기억 에 남을것 같아요"
+result = predict_sentiment(ex0)
+print(f"sentiment : {result}")
