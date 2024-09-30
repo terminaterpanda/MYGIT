@@ -511,4 +511,8 @@ class HeapNode:
                 queue.append(neighbor)
 
         return sorted_values
-    
+"""
+Sorted() == key(sorted) 함수에서 use되는 속성값.
+lambda(X) == 익명함수 -> 즉, 일회성으로 넣고 함수를 저장하지 않음으로 불필요한 연산을 최소화시키는것이 목적.
+"""
+

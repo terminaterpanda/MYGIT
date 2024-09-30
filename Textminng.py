@@ -4,9 +4,11 @@ import pandas as pd
 from konlpy.tag import Okt
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.naive_bayes import MultinomialNB
 from collections import Counter
 import requests
 from bs4 import BeautifulSoup
+from sklearn.model_selection import train_test_split
 
 #예시 file -1
 file_path1 = "/Users/iseong-yong/Desktop/files/movie1.csv" 
@@ -30,10 +32,13 @@ class Scraping:
             soup = BeautifulSoup(res.text, "lxml")
             text = soup.get_text(separator='\n', strip=True)
 
-            with open(filename, "w", encoding = "utf-8") as file:
-                file.write(text)
-            
-            print(f"Saved{filename}")
+            sentences = text.split(".")
+            sentences = [sentence.strip() for sentence in sentences if sentence.strip()]
+            df = pd.Dataframe(sentences, columns=["sentence"])
+            df.to_csv(filename, index = False, encoding="utf-8-sig")
+            print(f"saved {filename}")
+
+
 
         except requests.exceptions.HTTPError as err:
             print(f"HTTP error occurred: {err}")
@@ -108,7 +113,28 @@ nouns.to_csv(file_path5, index = False, encoding = "utf-8-sig")
 nouns1.to_csv(file_path6, index = False, encoding = "utf-8-sig")
 
 #정규식 정의
+a1 = re.compile("[.]+")
+a2 = re.compile("[,]+")
+a3 = re.compile("[_]+")
+"""
+a4 = re.compile()
+a5 = re.compile()
+a6 = re.compile()
+"""
+nouns = str(nouns)
+nouns1 = str(nouns1)
 
+nouns = (a1.sub(" ", nouns))
+nouns1 = (a2.sub(" ", nouns1))
 
+file_path7 = "/Users/iseong-yong/Desktop/files/1.csv"
+file_path8 = "/Users/iseong-yong/Desktop/files/2.csv"
+
+nouns = pd.DataFrame(nouns)
+nouns1 = pd.DataFrame(nouns1)
+
+nouns.to_csv(file_path7, index = False, encoding = "utf-8-sig")
+nouns1.to_csv(file_path8, index = False, encoding = "utf-8-sig")
+#한글-> [가-힣](장규표현식)
 
 
