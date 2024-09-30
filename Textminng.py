@@ -3,12 +3,12 @@ import re
 import pandas as pd
 from konlpy.tag import Okt
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.preprocessing import OneHotEncoder
 from sklearn.naive_bayes import MultinomialNB
 from collections import Counter
 import requests
 from bs4 import BeautifulSoup
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
 #예시 file -1
 file_path1 = "/Users/iseong-yong/Desktop/files/movie1.csv" 
@@ -34,18 +34,16 @@ class Scraping:
 
             sentences = text.split(".")
             sentences = [sentence.strip() for sentence in sentences if sentence.strip()]
-            df = pd.Dataframe(sentences, columns=["sentence"])
+            df = pd.DataFrame(sentences, columns=["sentence"])
             df.to_csv(filename, index = False, encoding="utf-8-sig")
             print(f"saved {filename}")
-
-
 
         except requests.exceptions.HTTPError as err:
             print(f"HTTP error occurred: {err}")
         except Exception as err:
             print(f"An error occurred: {err}")
 
-"""사용법"""
+"""사용법""" #scraping으로 get, 전처리 후 아래의 사용법으로 use.
 
 #headers = (useragent name)
 textfile = textfile.replace(".", '')
@@ -54,16 +52,24 @@ textfile = textfile.replace(".", '')
 textfile_1 = textfile[textfile.point < 5] #580*3 matrix
 textfile_2 = textfile[~textfile.index.isin(textfile_1.index)] #420*3 matrix
 
-t1 = textfile_1.iloc[0:580,2].reset_index(drop=True)
-t2 = textfile_2.iloc[0:420,2].reset_index(drop=True)
+t1 = textfile_1.iloc[:,2].reset_index(drop=True)
+t2 = textfile_2.iloc[:,2].reset_index(drop=True)
 #rest_index == 인덱스를 재정렬해주는 function.
 
 okt = Okt()
 texter = " ".join(t1.astype(str))
 texter2 = " ".join(t2.astype(str))
 
+texter3 = texter.split(".")
+texter4 = texter2.split(".")
+
+#texter3 = "온점을 기준으로 문장을 쪼갬" (negative)
+#texter4 = "온점을 기준으로 문장을 쪼갬" (positive)
+
 nouns = okt.morphs(texter)
 nouns1 = okt.morphs(texter2)
+
+#texter == "형태소 분류 finish."
 
 #명사 빈도수 계산
 nouns_freq = pd.Series(nouns).value_counts()
@@ -99,42 +105,68 @@ file_path4 = "/Users/iseong-yong/Desktop/files/positive.csv"
 filteredn.to_csv(file_path3, index=False, encoding="utf-8-sig")
 filteredp.to_csv(file_path4, index=False, encoding="utf-8-sig")
 #--------------------------------------------------------------(단어(noun)출현 빈도 분석) <pos vs neg>
+################################################################
 
-print(nouns)  #nouns -> vectorize finished한 negative data  (명사로만 구성)
-print(nouns1) #nouns1 -> vectorize finished한 positive data (명사로만 구성)
+#감정 분석 start.
 
-file_path5 = "/Users/iseong-yong/Desktop/files/negnouns.csv"
-file_path6 = "/Users/iseong-yong/Desktop/files/posnouns.csv"
+def morph_sentance(sentences):
+    result = []
+    for sentence in sentences:
+        if sentence.strip():
+            result.append(" ".join(okt.morphs(sentence.strip())))
+    return result #for loop finish 되고 나서 return 문 실행.
 
-nouns = pd.DataFrame(nouns)
-nouns1 = pd.DataFrame(nouns1)
+texter3 = morph_sentance(texter3)
+texter4 = morph_sentance(texter4)
 
-nouns.to_csv(file_path5, index = False, encoding = "utf-8-sig")
-nouns1.to_csv(file_path6, index = False, encoding = "utf-8-sig")
+print(texter3) #texter3 == negative data(온점으로 쪼개고, 형태소분석을 완료한것)
+print(texter4) #texter4 == positive data(온점으로 쪼개고, 형태소분석을 완료한것)
 
 #정규식 정의
-a1 = re.compile("[.]+")
-a2 = re.compile("[,]+")
-a3 = re.compile("[_]+")
+def clean_text(text):
+    text = re.sub("[.]+", " ", text)
+    text = re.sub("[,]+", " ", text)
+    text = re.sub("[_]+", " ", text)
+    text = text.strip()
+    return text
 """
 a4 = re.compile()
 a5 = re.compile()
 a6 = re.compile()
 """
-nouns = str(nouns)
-nouns1 = str(nouns1)
-
-nouns = (a1.sub(" ", nouns))
-nouns1 = (a2.sub(" ", nouns1))
-
-file_path7 = "/Users/iseong-yong/Desktop/files/1.csv"
-file_path8 = "/Users/iseong-yong/Desktop/files/2.csv"
-
-nouns = pd.DataFrame(nouns)
-nouns1 = pd.DataFrame(nouns1)
-
-nouns.to_csv(file_path7, index = False, encoding = "utf-8-sig")
-nouns1.to_csv(file_path8, index = False, encoding = "utf-8-sig")
 #한글-> [가-힣](장규표현식)
 
+cleaned1 = [clean_text(sentence) for sentence in texter3]
+cleaned2 = [clean_text(sentence) for sentence in texter4]
+
+df_neg = pd.DataFrame(cleaned1, columns=["sentence"])
+df_pos = pd.DataFrame(cleaned2, columns=["sentence"])
+
+file_path5 = "/Users/iseong-yong/Desktop/files/negative.csv"
+file_path6 = "/Users/iseong-yong/Desktop/files/positive.csv"
+
+df_neg.to_csv(file_path5, index=False, encoding="utf-8-sig")
+df_pos.to_csv(file_path6, index=False, encoding="utf-8-sig")
+
+#neg, pos 저장(in csv)
+X_neg = df_neg["sentence"]
+X_pos = df_pos["sentence"]
+
+y_neg = [0] * len(X_neg)
+y_pos = [1] * len(X_pos)
+
+X = pd.concat([X_neg, X_pos], ignore_index=True)
+y = y_neg + y_pos
+
+vectorizer = CountVectorizer()
+X_Vectorized = vectorizer.fit_transform(X)
+
+X_train, X_test, y_train, y_test = train_test_split(X_Vectorized, y, test_size=0.2, random_state=28)
+
+model = MultinomialNB()
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy * 100:.2f}%")
 
