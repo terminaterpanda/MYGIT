@@ -436,6 +436,95 @@ for i, layer in enumerate(layers):
         neighbors = [neighbor.data for neighbor in node.neighbors]
         print(f"Node {node.data} -> Neighbors: {neighbors}")
 
+#Wiki docs Tree(binary)
+
+class Node:
+    def __init__(self, data):
+        self.data = data #data 초기화.
+        self.left = None
+        self.right = None
+#여기서는 self를 리스트로 하지 않고 왼쪽 오른쪽을 정의하였다(자식 node(좌), 자식 node(우))
+
+class BSTree:
+    def __init__(self):
+        self.root = None #Tree의 root node 지정.
+
+    """
+    Tree class는 위로 갈수록, 즉 부모 node가 자식 Node보다 커야 하므로 이런 식으로 동작.
+    """
+
+    def __contains__(self, data):
+        node = self.root #탐색을 시작할 node를 root node로 설정.
+        while node: #node 존재전까지 repeat 탐색.
+            if node.data == data:
+                return True
+            elif node.data > data:
+                node = node.left
+            else:
+                node = node.right
+        return False
+    #root node부터 탐색 start.
+    """
+    같으면 True, 없으면 false, 그리고 값이 작으면 left, 크면 right로 이동.
+    """
+
+    def inorder(self):
+        def _inorder(node):
+            if not node:
+                return
+            _inorder(node.left)
+            res.append(node.data)
+            _inorder(node.right)
+        res = []            #res = 결과를 저장할 빈 list생성.
+        _inorder(self.root) #tree node부터 순회 start.
+        return res
+
+    def _insert(self, node, data):
+        if node is None: #node를 저장할 자리가 빈 것.
+            return Node(data)
+        if node.data > data:
+            node.left = self._insert(node.left, data)
+        else:
+            node.right = self._insert(node.right, data)
+        return node
+
+    def insert(self, data):        
+        self.root = self._insert(self.root, data)
+        #위의 함수를 받아서 root부터 start하여 적절한 위치에 data insert하는 method.
+
+    def get_leftmost(self, node):
+        #get left에서 제일 작은 값.(즉, 끝까지 아래로 내려가서 가장 왼쪽에 있는 node return.)
+        while node.left:
+            node = node.left
+        return node
+
+    def _delete(self, node, data):
+        if node is None: #del 할 값이 tree에 존재 x.
+            return
+        if node.data > data:
+            node.left = self._delete(node.left, data)
+        elif node.data < data:
+            node.right = self._delete(node.right, data)
+        else:
+            if node.left and node.right:
+                leftmost = self.get_leftmost(node.right)
+                node.data = leftmost.data
+                node.right = self._delete(node.right, leftmost.data)
+                return node
+            if node.left:
+                return node.left
+            else:
+                return node.right
+        return node
+
+    def delete(self, data):
+        self.root = self._delete(self.root, data)
+        #위의 것과 비슷하게 가져와서 루트부터 start.
+
+if __name__ == "__main__":        
+    bst = BSTree()
+    for x in (8, 3, 10, 1, 6, 9, 12, 4, 5, 11):
+        bst.insert(x)
 
 # 8. Heap
 
@@ -533,19 +622,81 @@ Sorted() == key(sorted) 함수에서 use되는 속성값.
 lambda(X) == 익명함수 -> 즉, 일회성으로 넣고 함수를 저장하지 않음으로 불필요한 연산을 최소화시키는것이 목적.
 """
 
-#Other Code:
+#######################################################################################
 
-class MaXHeap:
-    def __init__(self, data_list = None):
-        self.h = [0]
-        if data_list is not None:
-            self.h.extend(data_list)
+# Wikidocs data modeling
 
-            #build 힙
+class Return:
+    def findout(self, *args):
+        if not args:
+            raise ValueError("Error Occured")
+        
+        mylists = list(args)
+        n = len(mylists)
+        if n < 2:
+            raise ValueError("only one is implied")
+        
+        mylists.sort(reverse=True)
+        print(f"first{mylists[0]}, second{mylists[1]}")
 
-        for i in range(self.size() // 2, 0, -1):
-            self.max_heapify(i)
 
-a = [1,4,2,4,5,96,3,6,4,6]
-h1 = MaXHeap(a)
-print(h1.h)
+class FindReverse:
+    def findout(self, s):
+        mylist = list(s)
+
+        #data 정제
+        s = "".join(e.lower() for e in s if e.isalnum())
+        #입력 문자열 s의 각 문자를 e로 가져오고, isalnum은 문자 혹은 숫자를 제외하고 전부 제거. + 소문자로 change.
+        #.join == 필터링된 모든 문자열들이 전부 하나의 문자열로 결합.
+
+        if mylist == mylist[::1]:
+            return f"good"
+        else:
+            raise ValueError("error")
+        
+class Sort:
+    def findandsort(self, args):
+        if not args:
+            raise ValueError("nothing imported")
+        mylist = list(args)
+        a = (mylist.count(0))
+        b = (mylist.count(1))
+        list2 = ([0] * a) + ([1] * b)
+        return list2
+
+#이중 repeat으로 make.
+
+def find_sub_Array(a: list[int], s:int) -> list[int]:
+    #이런 식으로 함수를 define (매개변수와 반환 의 type를 지정하는 것)
+    #a, s) --  매개변수 . 반환값 -.> int형 의 리스트
+    for i in range(len(a)):
+        sub_total: int = 0 #부분 배열의 합을 0으로 초기화.
+        for j in range(i, len(a)): #i부터 끊임없이 반복.
+            sub_total += a[j]
+            if sub_total == s:
+                return [i+1, j+1] #index return.
+    return[-1]
+
+#이중 repeat 사용하지 않는 code 구현.
+
+def find_sub_array_1(a:list[int], s:int) -> list[int]:
+
+    left: int = 0
+    sub_total: int = 0
+    for right in range(len(a)):
+        sub_total += a[right]
+        #a[right] indexing을 use해서 끊임없이 반복.
+        while left < right and sub_total >s:
+            sub_total -= a[left]
+            left += 1
+
+        if sub_total == s:
+            return [left+1, right+1]
+    return [-1]
+
+#AVL tree 
+
+"""
+1. 노드의 height == 노드에서 가장 깊은 노드까지의 길이(하나의 직선)거쳐가는 경우 존재 x
+2. node balance factor = right left 높이의 차이 
+"""
