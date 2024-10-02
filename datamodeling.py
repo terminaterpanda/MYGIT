@@ -511,8 +511,41 @@ class HeapNode:
                 queue.append(neighbor)
 
         return sorted_values
+    
+    def AddHeap(self, value):
+        #new node 생성.
+        new_node = Node3(value)
+        self.lists.append(new_node)
+        self.heapify_up(len(self.lists) -1)
+
+    def heapify_up(self, index):
+        #root 노드와 indexing 비교
+        if index == 0:
+            return #재귀함수이므로 이렇게 작동이 가능하다.
+        parent_index = (index -1) // 2
+        if self.lists[index].data > self.lists[parent_index].data:
+            #parent index를 계산하여 indexing을 하여 data크기 비교.
+            self.lists[index], self.lists[parent_index] = self.lists[parent_index], self.lists[index]
+            #크기가 오름차순으로 되어 있는 경우가 아니라면 교체 + 재귀적으로 끊임없이 repeat.
+            self.heapify_up(parent_index)
 """
 Sorted() == key(sorted) 함수에서 use되는 속성값.
 lambda(X) == 익명함수 -> 즉, 일회성으로 넣고 함수를 저장하지 않음으로 불필요한 연산을 최소화시키는것이 목적.
 """
 
+#Other Code:
+
+class MaXHeap:
+    def __init__(self, data_list = None):
+        self.h = [0]
+        if data_list is not None:
+            self.h.extend(data_list)
+
+            #build 힙
+
+        for i in range(self.size() // 2, 0, -1):
+            self.max_heapify(i)
+
+a = [1,4,2,4,5,96,3,6,4,6]
+h1 = MaXHeap(a)
+print(h1.h)
