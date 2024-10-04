@@ -700,3 +700,203 @@ def find_sub_array_1(a:list[int], s:int) -> list[int]:
 1. 노드의 height == 노드에서 가장 깊은 노드까지의 길이(하나의 직선)거쳐가는 경우 존재 x
 2. node balance factor = right left 높이의 차이 
 """
+
+class AVLnode(Node):
+    def __init__(self, data):
+        super().__init__(data) #super() - 부모 class Node method 호출 use.
+        self.height = 0        #node height 속성을 초기화(기본 높이를 0으로 define)
+        
+class AVLTree(BSTree):
+
+    def get_height(self, node):
+        if node is None: #node == 높이를 계산하고자 하는 node.
+            return -1    #-1은 node가 비어 있는 경우에 계산을 쉽게 구별할 수 있게 해줌.
+        
+        left_height = node.left.height if node.left else -1
+        #node 왼쪽 자식이 존재하면, 그 자식의 높이를 가져옴. 그렇지 않으면 -1
+        right_height = node.right.height if node.right else -1
+        #node 오른쪽 자식도 같은 방식으로 높이를 계산함.
+        return 1 + max(left_height, right_height)
+        #현재 노드 높이는 1 + (왼쪽, 오른쪽 자식의 높이 중 큰 값을 반환.)
+    def get_balance(self, node):
+        return self.get_height(node.left) - self.get_height(node.right)
+    #왼쪽 서브트리 높이에서 오른쪽 서브트리 높이를 빼서 균형인수를 계산.
+    #get_balance 메서드를 use해서 0, -1, 1까지는 두고, -2이하 혹은 2이상값이 나오는 경우를 return
+    #하여 다시 회전연산이 필요하다는 것을 뜻함.
+
+    def _insert(self, node, data):
+        #node = 현재 탐색 중 node.(삽입 위치를 Find.) + data(tree) 삽입할 data 값.
+        if node is None:
+            return AVLnode(data)
+        #node가 none인지 확인해야 하고, none 인 경우에 새로운 AVLnode 인스턴스 생성, 반환.
+        if node.data > data:
+            #현재 node data가 삽입할 data보다 큰 경우에 왼쪽 서브트리에 삽입.(insert 메서드 호출)
+            node.left = self._insert(node.left, data)
+        else:
+            node.right = self._insert(node.right, data)
+            #그렇지 않은 경우에 오른쪽 node_right 에 삽입한다.
+
+        node.height = self.get_height(node)
+        #node 높이 update
+        node = self.balancing(node)
+        #self.balancing을 호출하여 현재 node의 균형을 유지함.
+        return node
+    
+    def _delete(self, node, data):
+        if node is None:
+            return 
+        if node.data > data:
+            node.left = self._delete(node.left, data)
+
+        elif node.data < data:
+
+            node.right = self._delete(node.right, data)
+        else:
+
+            if node.left and node.right:
+                leftmost = self.get_leftmost(node.right)
+                node.data = leftmost.data
+                node.right = self._delete(node.right, leftmost.data)
+                return node
+            if node.left:
+                return node.left
+            else:
+                return node.right
+            
+        node.height = self.get_height(node)
+        node = self.balancing(node)
+        return node
+    
+
+    def rotate_right(self, node):
+        child = node.left #child를 node.left에 지정되어 있는 node에 선언.
+        node.left, child.right = child.right, node
+        ######### == 여기까지가 회전시키는 동작이라고 일컬을 수 있다.
+        #node.left를 child.right로 설정하여 child의 오른쪽 자식이 node 좌 자식.
+        node.height = self.get_height(node)
+        child.height = self.get_height(child)
+        return child
+    
+    def rotate_left(self, node): 
+        child = node.right #오른쪽 자식이 무거운 경우 왼쪽 회전.
+        node.right, child.left = child.left, node
+        node.height = self.get_height(node)
+        child.height = self.get_height(child)
+        return child
+    
+    def rotate_right_left(self, node): 
+        child = node.right      #무거운 경우(오른쪽 자식보다 왼쪽이 무거운 경우)
+        grandchild = child.left
+
+        node.right, child.left = grandchild.left, grandchild.right
+        grandchild.left, grandchild.right = node, child
+        child.height = self.get_height(child)
+        node.height = self.get_height(node)
+        grandchild.height = self.get_height(grandchild)
+
+        return grandchild
+   
+    def rotate_left_right(self, node):
+        child = node.left
+        #child -> 변수에 저장, 그리고 그 후에 그 child를 저장하여 나중에 root node로 변경.
+        grandchild = child.right
+        #grandchild 변수에 저장한 후 이걸 회전을 시키는 경우에 중심으로 use.
+        child.right, node.left = grandchild.left, grandchild.right
+        grandchild.left, grandchild.right = child, node
+        #이 위의 두줄의 코드로 자식관계를 재조정.
+        #파이썬에서 두가지 작업 동시 수행 튜플 할당 방식
+        child.height = self.get_height(child)
+        node.height = self.get_height(node)
+        grandchild.height = self.get_height(grandchild)
+        #높이 계산하고 그 후에 위에 정의한 함수를 바탕으로 높이 재조정.
+
+        return grandchild
+    
+    def balancing(self, node):
+        balance_factor = self.get_balance(node)
+        if balance_factor == 2:
+            if self.get_balance(node.left) >= 0:
+                node = self.rotate_right(node)
+            else:
+                node = self.rotate_left_right(node)
+        
+        elif balance_factor == -2:
+            if self.get_balance(node.right) <= 0:
+                node = self.rotate_left(node)
+            else:
+                node = self.rotate_right_left(node)
+        return node
+    
+if __name__ == "__main__": #시작점을 정의.(define)
+
+    def level_order(tree):
+        q = [tree.root]
+        #q = 리스트 생성, 리스트의 첫번째 요소로 tree의 root.node를 추가함.
+        #node 저장하는 자료구조(queue) BFS(너비 우선탐색)으로 노드 탐색.
+        res = []
+        #방문한 각 node의 data를 저장하는 데 use.
+        while q: #q에 노드가 남아 있는 동안 repeat.
+            node = q.pop() #방문할 node 꺼내고 요소 반환.
+            res.append((node.data, node.height, tree.get_balance(node)))
+            #튜플 형태로 res list에 추가함(균형 인수)
+            if node.left: #존재하는 경우에 따라서 추가하여 다음순서에서 방문.
+                q.append(node.left)
+            if node.right:
+                q.append(node.right)
+
+        return res
+    
+    def get_data(msg):        #msg - user에게 보여줄 메시지 전달 문자열.
+        print(msg, end=">>> ")#end를 이런 식을 정의하여 입력 유도.
+        data = input()        #사용자 입력을 받아서 data 변수에 str 형태로 저장.
+        if data.isdigit():
+            return int(data)  #숫자인지 확인하여 반환.(숫자가 아니면 false.-> none 반환.)
+        return None
+
+    tree = AVLTree()
+    #AVLtree 클래스의 인스턴스 Tree 생성.
+    while True:
+        #무한 루프 start.
+        menu = """
+실행할 명령어를 선택하세요.
+
+[0] AVL 트리의 상태 출력 [(노드 값, 높이, 균형 지수), ...]
+[1] 노드 추가
+[2] 노드 삭제
+[3] 노드 검색
+[9] 끝내기
+"""
+#사용자와의 상호작용을 지속적으로 처리함.
+        print(menu, end=" >>> ")
+        #menu 문자열 출력.
+        command = int(input())
+        #command 변수에 저장하고, 문자열로 입력받은 걸 int()형으로 변화하여 정수로 저장.
+        print()
+        #출력 후 줄바꿈 start.
+        if command == 0 and tree.root is not None:
+            print(level_order(tree))
+        elif command == 1:
+            data = get_data("트리에 추가할 정수를 입력하세요.")
+            if data is not None:
+                tree.insert(data)
+                print(f"{data}(을)를 트리에 추가했습니다.")
+            else:
+                print("값을 잘못 입력했습니다.")
+        elif command == 2:
+            data = get_data("트리에서 삭제할 정수를 입력하세요.")
+            if data is not None:
+                tree.delete(data)
+                print(f"{data}(을)를 트리에서 삭제했습니다.")
+            else:
+                print("값을 잘못 입력했습니다.")
+        elif command == 3:
+            data = get_data("검색할 값을 입력하세요.")
+            if data is not None:
+                if data in tree:
+                    print(f"{data}(이)가 리스트에 있습니다.")
+                else:
+                    print(f"{data}(이)가 리스트에 없습니다.")
+            else:
+                print("값을 잘못 입력했습니다.")
+        elif command == 9:
+            break
