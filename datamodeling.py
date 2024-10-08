@@ -900,3 +900,8 @@ if __name__ == "__main__": #시작점을 정의.(define)
                 print("값을 잘못 입력했습니다.")
         elif command == 9:
             break
+
+
+
+
+

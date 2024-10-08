@@ -31,10 +31,13 @@ class Scraping:
 
             soup = BeautifulSoup(res.text, "lxml")
             text = soup.get_text(separator='\n', strip=True)
+            #\n을 사용해서 줄바꿈으로 seperator use.
 
-            sentences = text.split(".")
+            sentences = text.split(".") #구두점으로 sentence 분리. 
             sentences = [sentence.strip() for sentence in sentences if sentence.strip()]
-            df = pd.DataFrame(sentences, columns=["sentence"])
+
+            korean_sentences = [sentence for sentence in sentences if re.search(r"가-힣", sentence)]
+            df = pd.DataFrame(korean_sentences, columns=["sentence"])
             df.to_csv(filename, index = False, encoding="utf-8-sig")
             print(f"saved {filename}")
 
@@ -176,7 +179,71 @@ def predict_sentiment(sentence):
     sentence = " ".join(okt.morphs(sentence))
     vectorized_sentence = vectorizer.transform([sentence])
     return model.predict(vectorized_sentence)[0]
+#bow 형태를 활용하여 수치화한 data이므로, 단어의 빈도를 계산하여 벡터화하기 때문애 새로운 data에는 적응할 수 없다.
 
 ex0 = "오래도록 기억 에 남을것 같아요"
 result = predict_sentiment(ex0)
 print(f"sentiment : {result}")
+
+###################################################
+# Code Implementation Usng Bert
+
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.svm import SVC
+import torch
+from transformers import BertTokenizer, BertModel
+from sklearn.preprocessing import LabelEncoder
+
+# load pre-trained bert model and tokenizer
+
+tokenizer = BertTokenizer.from_pretrained("monologg/kobert")
+model = BertModel.from_pretrained("monologg/kobert")
+
+def get_sentence_embedding(sentence):
+    inputs = tokenizer(sentence, return_tensors = "pt", padding = True,
+                       truncation = True, max_length = 128)
+    outputs = model(**inputs)
+    cls_embedding = outputs.last_hidden_state[:, 0, :]
+    return cls_embedding.detatch().numpy()
+
+file_path3 = "/Users/iseong-yong/Desktop/files/positive.csv"
+file_path4 = "/Users/iseong-yong/Desktop/files/negative.csv"
+
+data1 = pd.read_csv(file_path3, encoding = "utf-8")
+data2 = pd.read_csv(file_path4, encoding = "utf-8")
+
+data1['embedding"'] = data1["sentence"].apply(lambda x: get_sentence_embedding(x).flatten())
+#해당 bert embedding으로 변환.(1d 배열로 변환) = embedding 이라는 새로운 열에 저장.
+
+x = np.vstack(data1["embedding"].values)
+y = data1["label"]
+
+label_encoder = LabelEncoder()
+y = label_encoder.fit_transform(y)
+
+#train-test split
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=98)
+
+clf = SVC(kernel="linear")
+clf.fit(X_train, y_train)
+
+y_pred = clf.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy * 100:.2f}%")
+
+def predict_sentiment(sentence):
+    embedding = get_sentence_embedding(sentence).flatten()
+    prediction = clf.predict([embedding])
+    return label_encoder.inverse_transform(prediction)[0]
+
+test_sentence = "기생충은 정말 잘못됬다."
+result = predict_sentiment(test_sentence)
+
+print(f"predicted sentiment: {result}")
+
+
+
