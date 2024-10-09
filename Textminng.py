@@ -1,7 +1,7 @@
 import numpy as np
 import re
 import pandas as pd
-from konlpy.tag import Okt
+from konlpy.tag import *
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from collections import Counter
@@ -9,6 +9,10 @@ import requests
 from bs4 import BeautifulSoup
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+from keras import Sequential
+from torch import nn
+import jpype
+from konlpy.tag import Okt
 
 #예시 file -1
 file_path1 = "/Users/iseong-yong/Desktop/files/movie1.csv" 
@@ -244,6 +248,3 @@ test_sentence = "기생충은 정말 잘못됬다."
 result = predict_sentiment(test_sentence)
 
 print(f"predicted sentiment: {result}")
-
-
-
