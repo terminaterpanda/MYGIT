@@ -4,23 +4,12 @@ import pandas as pd
 from konlpy.tag import *
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
-from collections import Counter
 import requests
 from bs4 import BeautifulSoup
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from keras import Sequential
-from torch import nn
-import jpype
 from konlpy.tag import Okt
 
-#예시 file -1
-file_path1 = "/Users/iseong-yong/Desktop/files/movie1.csv" 
-textfile = pd.read_csv(file_path1, encoding= "utf-8")
-"""
-with open(file_path1, "r) as file:
-    textfile = file.read() <when not using pandas library>
-"""
 #기본적인 값을 가지고 올 수 있는 함수 정의.
 
 class Scraping:
@@ -51,8 +40,17 @@ class Scraping:
             print(f"An error occurred: {err}")
 
 """사용법""" #scraping으로 get, 전처리 후 아래의 사용법으로 use.
+############################################## scraping finish.
 
+#예시 file -1
+file_path1 = "/Users/iseong-yong/Desktop/files/movie1.csv" 
+textfile = pd.read_csv(file_path1, encoding= "utf-8")
+"""
+with open(file_path1, "r) as file:
+    textfile = file.read() <when not using pandas library>
+"""
 #headers = (useragent name)
+
 textfile = textfile.replace(".", '')
 
 # text를 평점에 따라서 구분정의.
@@ -66,12 +64,6 @@ t2 = textfile_2.iloc[:,2].reset_index(drop=True)
 okt = Okt()
 texter = " ".join(t1.astype(str))
 texter2 = " ".join(t2.astype(str))
-
-texter3 = texter.split(".")
-texter4 = texter2.split(".")
-
-#texter3 = "온점을 기준으로 문장을 쪼갬" (negative)
-#texter4 = "온점을 기준으로 문장을 쪼갬" (positive)
 
 nouns = okt.morphs(texter)
 nouns1 = okt.morphs(texter2)
@@ -111,10 +103,20 @@ file_path4 = "/Users/iseong-yong/Desktop/files/positive.csv"
 
 filteredn.to_csv(file_path3, index=False, encoding="utf-8-sig")
 filteredp.to_csv(file_path4, index=False, encoding="utf-8-sig")
+
+print(filteredn)
+print(filteredp)
+
 #--------------------------------------------------------------(단어(noun)출현 빈도 분석) <pos vs neg>
 ################################################################
 
 #감정 분석 start.
+
+texter3 = texter.split(".")
+texter4 = texter2.split(".")
+
+#texter3 = "온점을 기준으로 문장을 쪼갬" (negative)
+#texter4 = "온점을 기준으로 문장을 쪼갬" (positive)
 
 def morph_sentance(sentences):
     result = []
@@ -134,6 +136,7 @@ def clean_text(text):
     text = re.sub("[.]+", " ", text)
     text = re.sub("[,]+", " ", text)
     text = re.sub("[_]+", " ", text)
+    text = re.sub(r'[^가-힣\s]', '', text)
     text = text.strip()
     return text
 """
@@ -149,8 +152,8 @@ cleaned2 = [clean_text(sentence) for sentence in texter4]
 df_neg = pd.DataFrame(cleaned1, columns=["sentence"])
 df_pos = pd.DataFrame(cleaned2, columns=["sentence"])
 
-file_path5 = "/Users/iseong-yong/Desktop/files/negative.csv"
-file_path6 = "/Users/iseong-yong/Desktop/files/positive.csv"
+file_path5 = "/Users/iseong-yong/Desktop/files/neg.csv"
+file_path6 = "/Users/iseong-yong/Desktop/files/pos.csv"
 
 df_neg.to_csv(file_path5, index=False, encoding="utf-8-sig")
 df_pos.to_csv(file_path6, index=False, encoding="utf-8-sig")
@@ -198,39 +201,57 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.svm import SVC
 import torch
-from transformers import BertTokenizer, BertModel
+from transformers import AutoTokenizer, AutoModel
 from sklearn.preprocessing import LabelEncoder
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # load pre-trained bert model and tokenizer
 
-tokenizer = BertTokenizer.from_pretrained("monologg/kobert")
-model = BertModel.from_pretrained("monologg/kobert")
+tokenizer = AutoTokenizer.from_pretrained("skt/kobert-base-v1")
+model = AutoModel.from_pretrained("skt/kobert-base-v1")
+#pre-trained model을 가져오기.
 
 def get_sentence_embedding(sentence):
-    inputs = tokenizer(sentence, return_tensors = "pt", padding = True,
-                       truncation = True, max_length = 128)
-    outputs = model(**inputs)
-    cls_embedding = outputs.last_hidden_state[:, 0, :]
-    return cls_embedding.detatch().numpy()
+    try:
+        if pd.isna(sentence) or not isinstance(sentence, str) or sentence.strip() == "":
+            # Handle invalid or empty sentences
+            return np.zeros(768)
+        
+        inputs = tokenizer(sentence, return_tensors="pt", padding='max_length',
+                           truncation=True, max_length=128)
+        with torch.no_grad():
+            outputs = model(**inputs)
+        
+        cls_embedding = outputs.last_hidden_state[:, 0, :]
+        return cls_embedding.detach().numpy()  # Convert to NumPy array
+        
+    except Exception as e:
+        print(f"Error processing sentence: '{sentence}' - {e}")
+        return np.zeros(768)  # Return zero vector for error cases
 
-file_path3 = "/Users/iseong-yong/Desktop/files/positive.csv"
-file_path4 = "/Users/iseong-yong/Desktop/files/negative.csv"
+data1 = pd.read_csv(file_path5, encoding = "utf-8") #neg data
+data2 = pd.read_csv(file_path6, encoding = "utf-8") #pos data
 
-data1 = pd.read_csv(file_path3, encoding = "utf-8")
-data2 = pd.read_csv(file_path4, encoding = "utf-8")
+data1['embedding'] = data1["sentence"].apply(lambda x: get_sentence_embedding(x).flatten() if x is not None else np.zeros(768))
+data2['embedding'] = data2["sentence"].apply(lambda x: get_sentence_embedding(x).flatten() if x is not None else np.zeros(768))
 
-data1['embedding"'] = data1["sentence"].apply(lambda x: get_sentence_embedding(x).flatten())
+data2['label'] = 0 #data2 = negative(label = 0)
+data1['label'] = 1 #data1 = positive(label = 1)
 #해당 bert embedding으로 변환.(1d 배열로 변환) = embedding 이라는 새로운 열에 저장.
 
-x = np.vstack(data1["embedding"].values)
-y = data1["label"]
+data1 = pd.concat([data1, data2], ignore_index=True)
+#data를 붙이고, index를 삭제하여 순서만 매김.
+
+x = np.vstack(data1['embedding'].values)
+#np.vstack 즉, 그냥 vertical로 합쳐버리는 함수이다.
+y = data1['label'].values
 
 label_encoder = LabelEncoder()
 y = label_encoder.fit_transform(y)
 
 #train-test split
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=98)
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=98)
 
 clf = SVC(kernel="linear")
 clf.fit(X_train, y_train)
@@ -241,8 +262,12 @@ print(f"Accuracy: {accuracy * 100:.2f}%")
 
 def predict_sentiment(sentence):
     embedding = get_sentence_embedding(sentence).flatten()
-    prediction = clf.predict([embedding])
-    return label_encoder.inverse_transform(prediction)[0]
+    
+    if embedding is not None and len(embedding) == 768:
+        prediction = clf.predict([embedding])
+        return label_encoder.inverse_transform(prediction)[0]
+    else:
+        return "Unknown"  # Or return some default sentiment
 
 test_sentence = "기생충은 정말 잘못됬다."
 result = predict_sentiment(test_sentence)
