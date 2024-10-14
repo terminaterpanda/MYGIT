@@ -1,6 +1,7 @@
 import numpy as np
 import re
 import pandas as pd
+import torch as nn
 from konlpy.tag import *
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
@@ -9,6 +10,7 @@ from bs4 import BeautifulSoup
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from konlpy.tag import Okt
+
 
 # 기본적인 값을 가지고 올 수 있는 함수 정의.
 
@@ -66,8 +68,8 @@ t2 = textfile_2.iloc[:, 2].reset_index(drop=True)
 # rest_index == 인덱스를 재정렬해주는 function.
 
 okt = Okt()
-texter = " ".join(t1.astype(str))
-texter2 = " ".join(t2.astype(str))
+texter = " ".join(t1.astype(str)) #texter == negative
+texter2 = " ".join(t2.astype(str))#texter2 == positive
 
 nouns = okt.morphs(texter)
 nouns1 = okt.morphs(texter2)
@@ -96,37 +98,9 @@ nouns_df2.to_csv(output_file_path1, index=False, encoding="utf-8-sig")
 # nouns_df == 평점 5점 미만
 # nouns_df2 == 평점 5 이상 (vector 임베딩)
 
-stopwords = [
-    "이",
-    "있",
-    "하",
-    "것",
-    "들",
-    "그",
-    "되",
-    "수",
-    "이",
-    "보",
-    "않",
-    "없",
-    "나",
-    "사람",
-    "주",
-    "아니",
-    "등",
-    "같",
-    "우리",
-    "때",
-    "년",
-    "가",
-    "한",
-    "지",
-    "대하",
-    "오",
-    "말",
-    "일",
-    "그렇",
-    "위하",
+stopwords = ["이","있","하","것","들","그","되","수","이","보",
+    "않","없","나","사람","주","아니","등","같","우리","때","년",
+    "가","한","지","대하","오","말","일","그렇","위하",
 ]
 
 filteredn = nouns_df[~nouns_df["noun"].isin(stopwords)]
@@ -146,10 +120,6 @@ print(filteredp)
 ################################################################
 
 # 감정 분석 start.
-
-texter3 = texter.split(".")
-texter4 = texter2.split(".")
-
 # texter3 = "온점을 기준으로 문장을 쪼갬" (negative)
 # texter4 = "온점을 기준으로 문장을 쪼갬" (positive)
 
@@ -157,24 +127,23 @@ texter4 = texter2.split(".")
 def morph_sentance(sentences):
     result = []
     for sentence in sentences:
-        if sentence.strip():
-            result.append(" ".join(okt.morphs(sentence.strip())))
-    return result  # for loop finish 되고 나서 return 문 실행.
+        try:
+            if sentence.strip():  # 빈 문자열이 아닌지 확인
+                morphs = okt.morphs(sentence.strip())
+                result.append(" ".join(morphs))
+        except Exception as e:
+            print(f"Error processing sentence: '{sentence.strip()}' - {e}")
+    return result
 
+texter3 = texter.split(".") #negative
+texter4 = texter2.split(".")#positive
 
-texter3 = morph_sentance(texter3)
-texter4 = morph_sentance(texter4)
-
-print(texter3)  # texter3 == negative data(온점으로 쪼개고, 형태소분석을 완료한것)
-print(texter4)  # texter4 == positive data(온점으로 쪼개고, 형태소분석을 완료한것)
-
+texter_negative = morph_sentance(texter3) #list형식
+texter_positive = morph_sentance(texter4) #list형식
 
 # 정규식 정의
 def clean_text(text):
-    text = re.sub("[.]+", " ", text)
-    text = re.sub("[,]+", " ", text)
-    text = re.sub("[_]+", " ", text)
-    text = re.sub(r"[^가-힣\s]", "", text)
+    text = re.sub(r"[^가-힣a-zA-Z\s]", "", text)
     text = text.strip()
     return text
 
@@ -186,11 +155,13 @@ a6 = re.compile()
 """
 # 한글-> [가-힣](장규표현식)
 
-cleaned1 = [clean_text(sentence) for sentence in texter3]
-cleaned2 = [clean_text(sentence) for sentence in texter4]
+cleaned_negative = [clean_text(sentence) for sentence in texter_negative]
+cleaned_positive = [clean_text(sentence) for sentence in texter_positive]
 
-df_neg = pd.DataFrame(cleaned1, columns=["sentence"])
-df_pos = pd.DataFrame(cleaned2, columns=["sentence"])
+cleaned_negative1 = [sentence for sentence in cleaned_negative if sentence is not None]
+cleaned_positive1 = [sentence for sentence in cleaned_positive if sentence is not None]
+df_neg = pd.DataFrame(cleaned_negative1, columns=["sentence"])
+df_pos = pd.DataFrame(cleaned_positive1, columns=["sentence"])
 
 file_path5 = "/Users/iseong-yong/Desktop/files/neg.csv"
 file_path6 = "/Users/iseong-yong/Desktop/files/pos.csv"
@@ -266,16 +237,22 @@ def get_sentence_embedding(sentence):
         inputs = tokenizer(
             sentence,
             return_tensors="pt",
-            padding="max_length",
-            truncation=True,
+            padding="max_length", #ensure all sentences.
+            truncation=True,  #truncate finish.
             max_length=128,
         )
         with torch.no_grad():
             outputs = model(**inputs)
 
-        cls_embedding = outputs.last_hidden_state[:, 0, :]
-        return cls_embedding.detach().numpy()  # Convert to NumPy array
+        #last_hidden_state의 크기를 확인하여 오류 강제발생.
+        if outputs.last_hidden_state.size(1) < 128:
+            print(f"warning: unexpected sentence: {sentence}")
+            return np.zeros(768)
+        
 
+        cls_embedding = outputs.last_hidden_state[:, 0, :]
+        return cls_embedding.squeeze().numpy()  # Convert to NumPy array
+        #squeeze == 차원을 강제로 축소시켜버리는 (축을 delete)
     except Exception as e:
         print(f"Error processing sentence: '{sentence}' - {e}")
         return np.zeros(768)  # Return zero vector for error cases
@@ -283,6 +260,8 @@ def get_sentence_embedding(sentence):
 
 data1 = pd.read_csv(file_path5, encoding="utf-8")  # neg data
 data2 = pd.read_csv(file_path6, encoding="utf-8")  # pos data
+
+print(data1.head(), data2.head())
 
 data1["embedding"] = data1["sentence"].apply(
     lambda x: get_sentence_embedding(x).flatten() if x is not None else np.zeros(768)
