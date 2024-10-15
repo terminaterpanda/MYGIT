@@ -1,5 +1,6 @@
 from django.db import models
 from konlpy.tag import Okt
+import torch as nn
 
 # Create your models here.
 
@@ -13,16 +14,15 @@ class Input(models.Model):
     indexing = models.IntegerField(default=0)
 
 from django.db import models
-
 from django.conf import settings
 from datetime import date
+from sklearn.naive_bayes import MultinomialNB
 import numpy as np
 import random
 import pandas as pd
-from nltk.tokenize import word_tokenize, sent_tokenize
-from nltk.corpus import stopwords
 import re
 
+#model의 text를 넣는 database define.
 class TOKENIZER(models.Model):
     name = models.CharField(
         max_length=999,
@@ -32,7 +32,21 @@ class TOKENIZER(models.Model):
     def __str__(self):
         
         return self.name
-    
+
+#text 전처리 func.
+def clean_Text(text):
+    text = re.sub(r"[^가-힣a-zA-Z\s]", "", text)
+    text = text.strip()
+    return text
+   
+#GPU 가속.(using mps)
+class UseM1(models.Model):    
+    def makeusemps(model):
+        if nn.backends.mps.is_built() == True:
+             mps_device = nn.device("mps")
+             model.to(mps_device)
+
+#logestic 함수 정의.
 class LogisticRegressionModel(models.Model):
     def sigmoid(z):
         return 1 / (1 + np.exp(-z))
@@ -68,7 +82,6 @@ class LogisticRegressionModel(models.Model):
     def test(self, X, w, b):
         return self.predict(X, w, b)
 
-
 # Example of using this model in Django views
 def logistic_regression_example():
     # Example data (usually you'd get this from your Tokenizer model)
@@ -88,3 +101,7 @@ def logistic_regression_example():
         'loss': loss,
         'predictions': predictions
     }
+
+
+
+    

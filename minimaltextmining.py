@@ -36,3 +36,5 @@ f_path2 = "/Users/iseong-yong/Desktop/files/positivedata.csv"  # 긍정적 데�
 text1_df.to_csv(f_path, index=False, encoding="utf-8-sig")  # 부정적 데이터 저장
 text2_df.to_csv(f_path2, index=False, encoding="utf-8-sig")  # 긍정적 데이터 저장
 
+
+

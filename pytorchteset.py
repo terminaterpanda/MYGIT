@@ -18,6 +18,4 @@ class mymodelname():
     pass
 
 model = mymodelname()
-model.to(mps_device)
 
-pred = model(x)
