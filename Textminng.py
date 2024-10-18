@@ -7,13 +7,10 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import requests
 from bs4 import BeautifulSoup
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split32
 from sklearn.metrics import accuracy_score
 from konlpy.tag import Okt
-
-
 # 기본적인 값을 가지고 올 수 있는 함수 정의.
-
 
 class Scraping:
     def __init__(self, url, headers):
@@ -46,7 +43,6 @@ class Scraping:
 
 
 """사용법"""  # scraping으로 get, 전처리 후 아래의 사용법으로 use.
-############################################## scraping finish.
 
 # 예시 file -1
 file_path1 = "/Users/iseong-yong/Desktop/files/movie1.csv"
@@ -117,12 +113,10 @@ print(filteredn)
 print(filteredp)
 
 # --------------------------------------------------------------(단어(noun)출현 빈도 분석) <pos vs neg>
-################################################################
 
 # 감정 분석 start.
 # texter3 = "온점을 기준으로 문장을 쪼갬" (negative)
 # texter4 = "온점을 기준으로 문장을 쪼갬" (positive)
-
 
 def morph_sentance(sentences):
     result = []
@@ -146,8 +140,6 @@ def clean_text(text):
     text = re.sub(r"[^가-힣a-zA-Z\s]", "", text)
     text = text.strip()
     return text
-
-
 """
 a4 = re.compile()
 a5 = re.compile()
@@ -193,14 +185,10 @@ y_pred = model.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
 print(f"Accuracy: {accuracy * 100:.2f}%")
 
-###########################################################
-
-
 def predict_sentiment(sentence):
     sentence = " ".join(okt.morphs(sentence))
     vectorized_sentence = vectorizer.transform([sentence])
     return model.predict(vectorized_sentence)[0]
-
 
 # bow 형태를 활용하여 수치화한 data이므로, 단어의 빈도를 계산하여 벡터화하기 때문애 새로운 data에는 적응할 수 없다.
 
@@ -208,7 +196,6 @@ ex0 = "오래도록 기억 에 남을것 같아요"
 result = predict_sentiment(ex0)
 print(f"sentiment : {result}")
 
-###################################################
 # Code Implementation Usng Bert
 
 import numpy as np
@@ -226,7 +213,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 tokenizer = AutoTokenizer.from_pretrained("skt/kobert-base-v1")
 model = AutoModel.from_pretrained("skt/kobert-base-v1")
 # pre-trained model을 가져오기.
-
 
 def get_sentence_embedding(sentence):
     try:
