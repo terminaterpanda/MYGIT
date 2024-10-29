@@ -1,15 +1,15 @@
 import numpy as np
 import re
 import pandas as pd
-import torch as nn
 from konlpy.tag import *
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import train_test_split
 import requests
 from bs4 import BeautifulSoup
-from sklearn.model_selection import train_test_split32
 from sklearn.metrics import accuracy_score
 from konlpy.tag import Okt
+from bs4 import BeautifulSoup
 # 기본적인 값을 가지고 올 수 있는 함수 정의.
 
 class Scraping:
@@ -213,36 +213,40 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 tokenizer = AutoTokenizer.from_pretrained("skt/kobert-base-v1")
 model = AutoModel.from_pretrained("skt/kobert-base-v1")
 # pre-trained model을 가져오기.
-
+mps_device = torch.device("mps")
 def get_sentence_embedding(sentence):
     try:
+        # Handle invalid or empty sentences
         if pd.isna(sentence) or not isinstance(sentence, str) or sentence.strip() == "":
-            # Handle invalid or empty sentences
             return np.zeros(768)
 
+        # Tokenize the input sentence
         inputs = tokenizer(
             sentence,
             return_tensors="pt",
-            padding="max_length", #ensure all sentences.
-            truncation=True,  #truncate finish.
+            padding="max_length",
+            truncation=True,
             max_length=128,
         )
+        
+        # Ensure the inputs are moved to the same device as the model
+        inputs = {key: val.to(mps_device) for key, val in inputs.items()}
+        
         with torch.no_grad():
             outputs = model(**inputs)
 
-        #last_hidden_state의 크기를 확인하여 오류 강제발생.
+        # Check if the last hidden state dimension is less than expected
         if outputs.last_hidden_state.size(1) < 128:
             print(f"warning: unexpected sentence: {sentence}")
             return np.zeros(768)
         
-
+        # Extract the CLS token's embedding
         cls_embedding = outputs.last_hidden_state[:, 0, :]
-        return cls_embedding.squeeze().numpy()  # Convert to NumPy array
-        #squeeze == 차원을 강제로 축소시켜버리는 (축을 delete)
+        return cls_embedding.squeeze().cpu().numpy()  # Convert to NumPy array and move to CPU
+
     except Exception as e:
         print(f"Error processing sentence: '{sentence}' - {e}")
         return np.zeros(768)  # Return zero vector for error cases
-
 
 data1 = pd.read_csv(file_path5, encoding="utf-8")  # neg data
 data2 = pd.read_csv(file_path6, encoding="utf-8")  # pos data
@@ -273,7 +277,7 @@ y = label_encoder.fit_transform(y)
 # train-test split
 
 X_train, X_test, y_train, y_test = train_test_split(
-    x, y, test_size=0.2, random_state=98
+    x, y, test_size=0.2, random_state=123
 )
 
 clf = SVC(kernel="linear")
@@ -293,6 +297,9 @@ def predict_sentiment(sentence):
     else:
         return "Unknown"  # Or return some default sentiment
 
+#######################################
+
+#Use mps(m1 GPU when doing calculation.)
 
 test_sentence = "기생충은 정말 잘못됬다."
 result = predict_sentiment(test_sentence)

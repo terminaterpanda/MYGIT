@@ -20,7 +20,7 @@ class Scraping:
         self.url = url
         self.headers = headers
 
-    def scrap_save(self, filename):
+    def scrap_save(self):
         try:
             res = requests.get(self.url, headers=self.headers)
             res.raise_for_status()  # status를 정의하여 가지고 올 수 있는지를 확인.
@@ -33,9 +33,13 @@ class Scraping:
             sentences = [sentence.strip() for sentence in sentences if sentence.strip()]
 
             korean_sentences = [
-                sentence for sentence in sentences if re.search(r"[^가-힣a-zA-Z\s]", sentence)
+                sentence for sentence in sentences if re.search(r"[가-힣]", sentence)
             ]
             df = pd.DataFrame(korean_sentences, columns=["sentence"])
+
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            #timestamp -> 시간을 측정해서 file 이름을 넣고, 그런 상태로 filename.csv 로 저장.
+            filename = f"korean_sentences_{timestamp}.csv"
             df.to_csv(filename, index=False, encoding="utf-8-sig")
             print(f"saved {filename}")
             self.df = df
@@ -46,12 +50,12 @@ class Scraping:
         except Exception as err:
             print(f"An error occurred: {err}")
 
-    def continuous_scrap(self, filename, refresh_interval):
+    def continuous_scrap(self, refresh_interval):
 
 
         while True:
             print("refresh")
-            self.scrap_save(filename)
+            self.scrap_save()
             print(f"{refresh_interval} 동안 대기")
             time.sleep(refresh_interval)
 
@@ -59,21 +63,48 @@ class Scraping:
 class GET():
     def __init__(self, name, file_path):
         self.name = name
-        self.file_path = "self.file_path"
+        self.file_path = file_path
         textfile = pd.read_csv(file_path, encoding ="utf-8")
         textfile = textfile.replace(".", "")
         self.textfile = textfile
 
-url = "https://weather.naver.com/today/08290106?cpName=KMA"
+url = "https://news.naver.com/"
 headers = {"User-Agent": 
            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"}
-
+mps_device = nn.device("mps")
 #headers는 키-값(value) 형식으로 저장되어야 한다.
+
 scraper = Scraping(url, headers)
 
 
 refresh_interval = 600
-filename = "korean_sentences.csv"
+scraper.continuous_scrap(refresh_interval)
+filepath = "/Users/iseong-yong/Desktop/files"
+get_instance = GET("korean_sentences", filepath)
 
-scraper.continuous_scrap(filename, refresh_interval)
+print(get_instance.textfile.head())
 
+
+class Moduler:
+    def __init__(self, moduler):
+        self.moduler = moduler
+
+    def makemoduler(self, value):
+        if value < self.moduler:
+            return self.moduler
+        elif value == self.moduler:
+            return 0
+        else:
+            return value % self.moduler
+
+    def moduleraddition(self, a, b):
+        sum_mod = (a % self.moduler + b % self.moduler) % self.moduler
+        if sum_mod == self.moduler:
+            return 0
+        return sum_mod
+
+    def modulermultiplication(self, a, b):
+        product_mod = (a % self.moduler) * (b % self.moduler) % self.moduler
+        if product_mod == self.moduler:
+            return 0
+        return product_mod
