@@ -185,6 +185,7 @@ class MakeList:
     def __init__(self, name, *args):
         if not args:
             raise ValueError("error occurred")
+        self.name = name
         shuffled_list = list(args)
         random.shuffle(shuffled_list)
         self.name = shuffled_list
@@ -283,3 +284,59 @@ class MakeList3:
         stored = self.Quick()
         print(f"list: {stored}")
         
+# 3. 피보나치 알고리즘
+
+class Fibonacci:
+    def __init__(self):
+        self.memo = {0: 0, 1: 1} 
+
+    def calculation(self, n):
+        if n < 0:
+            raise ValueError("n must be a non-negative integer.")
+        if n not in self.memo:
+            self.memo[n] = self.calculation(n - 1) + self.calculation(n - 2)  
+        return self.memo[n]  #이런 식으로 해서 n번째 까지 전부 하나씩 list 형식으로 쭉 나열, 나중에 꺼내오기.
+    
+
+# 4. 모듈러 알고리즘
+
+class Moduler:
+    def __init__(self, moduler):
+        self.moduler = moduler
+
+    def makemoduler(self, value):
+        if value < self.moduler:
+            return self.moduler
+        elif value == self.moduler:
+            return 0
+        else:
+            return value % self.moduler
+        
+    def moduleraddition(self, a, b):
+        sum_mod = (a % self.moduler + b % self.moduler) % self.moduler
+        if sum_mod == self.moduler:
+            return 0
+        return sum_mod
+    
+    def modulermultiplcation(self, a, b):
+        product_mod = (a % self.moduler) * (b % self.moduler) % self.moduler
+        if product_mod == self.moduler:
+            return 0
+        return product_mod
+
+# 5. 분할 정복 A.G
+
+class Conquer_divide():
+    def __init__(self, value):
+        if not isinstance(value, int) or value <= 0:
+            raise ValueError("error occured")
+        self.value = value
+        self.nodes = []
+
+    def divide(self, a, b):
+        while round(self.value) > 1:
+            self.value /= a
+            self.nodes.append(round(self.value))
+
+        result = round(self.value) * b 
+        self.nodes.append(result)

@@ -1,0 +1,5 @@
+나이브 베이즈 분류기
+-> 단어 빈도 기반의 BOW/TF-IDF 독립된 특징(어근과 어간추출) 등등의 data에 적합하다.
+[seg] + [seg] = 단어 앞과 끝에 넣기.
++ tokenizer ==> 단어 segmentaics use.
+

@@ -34,7 +34,63 @@ class Character:
 class Float:
     def floating_pass(self, num):
         return round(num)
-        
-        
+
+#3. 추상적인 Factory Pattern
+class AbstractFactory:
+    def create_inits1(self):
+        raise NotImplementedError
+    
+    def create_character(self):
+        raise NotImplementedError
+
+class MakeFactory(AbstractFactory):
+    def create_inits1(self):
+        return inits()
+    
+    def create_character(self):
+        return characters()
+
+class inits:
+    def return_init(self):
+        return "INIT"
+
+class characters:
+    def return_character(self):
+        return "CHARACTER"
+
+#4. Builder Pattern
+"""
+객체 생성을 단계별로 나누고, 각 단게별로 객체 생성 방법 지정.
+"""
+class Product:
+    def __init__(self):
+        self.parts = []
+
+    def add(self, part):
+        self.parts.append(part)
+    
+    def show(self):
+        print("product parts:", ", ".join(self.parts))
+
+class Builder:
+    def __init__(self):
+        self.product = Product()
+
+    def build_part_a(self):
+        self.product.add("Part A")
+
+    def build_part_b(self):
+        self.product.add("Part B")
+
+    def get_result(self):
+        return self.product
+
+class Director:
+    def __init__(self, builder):
+        self.builder = builder
+
+    def construct(self):
+        self.builder.build_part_a()
+        self.builder.build_part_b()
 
 

@@ -31,7 +31,7 @@ class Scraping:
 
             korean_sentences = [
                 sentence for sentence in sentences if re.search(r"가-힣", sentence)
-            ]
+            ] #정규표현식으로 찾아냈군...
             df = pd.DataFrame(korean_sentences, columns=["sentence"])
             df.to_csv(filename, index=False, encoding="utf-8-sig")
             print(f"saved {filename}")

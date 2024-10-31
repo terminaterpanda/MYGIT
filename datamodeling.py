@@ -963,3 +963,21 @@ if __name__ == "__main__":  # 시작점을 정의.(define)
                 print("값을 잘못 입력했습니다.")
         elif command == 9:
             break
+
+# Co - Occurence Network
+
+class Occurnetwork:
+    def __init__(self, *args):
+        if not args:
+            raise ValueError("error occured")
+        self.nodes = list(args)
+        self.edges = {} #딕셔너리 use.(초기화) = edge 표현하기 편하겟군
+
+    def Makeedge(self, value):
+        #오류 있을 때를 정의해놓아야지..
+        if value not in range(len(self.nodes)):
+            raise ValueError("ERROR")
+        
+        if value not in self.edges:
+            self.edges[value] = []
+
