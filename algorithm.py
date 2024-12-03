@@ -4,7 +4,6 @@
 
 from random import shuffle
 
-
 class Node:
     def __init__(self, data):
         if not data:
@@ -82,7 +81,6 @@ visited = [False] * 9
 
 
 # 2. DFS
-
 
 class Node:
     def __init__(self, data):
@@ -201,7 +199,6 @@ class MakeList:
 
 # 2. 선택정렬(Selection Sort)
 
-
 class Makelist1:
     def __init__(self, name, *args):
         if not args:
@@ -226,7 +223,6 @@ class Makelist1:
 
 
 # 3. 삽입정렬(Insert Sort)
-
 
 class Makelist2:
     def __init__(self, name, *args):
@@ -340,3 +336,62 @@ class Conquer_divide():
 
         result = round(self.value) * b 
         self.nodes.append(result)
+
+# 6. 이진 정렬(binary sort)
+
+class Binary_sort():
+    def __init__(self, *args):
+        if not args:
+            raise ValueError('error occured')
+        self.lists = list(args)
+
+    def binary_search(self, value, start, end):
+        while start < end:
+            mid = (start + end) // 2
+            if value < self.lists[mid]:
+                end = mid
+            else:
+                #재귀적 호출을 사용해서 같을때를 찾아내는 거군.
+                start = mid + 1
+        return start
+    
+    def sort(self):
+        for i in range(len(self.lists)):
+            value = self.lists[i]
+            pos = self.binary_search(value, 0, i)
+            self.lists = self.lists[:pos] + [value] + self.lists[pos:i] + self.lists[i+1:]
+
+    def get_sorted_list(self):
+        return self.lists
+    
+# 7. Quick sort
+
+class quick():
+    def __init__(self, *args):
+        if not args:
+            raise ValueError("error occured")
+        self.lists = list(args)
+
+    def find_pivot(self, low, high):
+        pivot = self.lists[high]
+        #이건 indexing으로 뽑아버린 거잖어
+        i = low - 1
+        for j in range(low, high):
+            if self.lists[j] < pivot:
+                i += 1
+                self.lists[i], self.lists[j] = self.lists[j], self.lists[i]
+        #이쪽은 이해가 안되는데? # 작은값과 큰값을 나누어 정렬하는 것
+        self.lists[i + 1], self.lists[high] = self.lists[high], self.lists[i + 1]
+        return i + 1
+    def quick_sort_recursive(self, low, high):
+        if low < high:
+            pivot_index = self.partition(low, high)
+            self.quick_sort_recursive(low, pivot_index - 1)
+            self.quick_sort_recursive(pivot_index + 1, high)
+
+    def sort(self):
+        self.quick_sort_recursive(0, len(self.lists) - 1)
+        return self.lists
+
+
+#8. FFT A.G

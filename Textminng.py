@@ -196,6 +196,9 @@ ex0 = "오래도록 기억 에 남을것 같아요"
 result = predict_sentiment(ex0)
 print(f"sentiment : {result}")
 
+########################################################
+
+
 # Code Implementation Usng Bert
 
 import numpy as np

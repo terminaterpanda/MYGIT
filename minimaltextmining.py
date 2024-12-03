@@ -77,7 +77,6 @@ class Scraping:
             print(f"{refresh_interval} 동안 대기")
             time.sleep(refresh_interval)
 
-
 class GET():
     def __init__(self, name, file_path):
         self.name = name
@@ -166,3 +165,4 @@ while True:
             print(f"sentence : {sentence}" | "predict : {sentiment}")
 
     time.sleep(refresh_interval)
+
