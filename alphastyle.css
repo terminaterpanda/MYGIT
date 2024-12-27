@@ -1,0 +1,11 @@
+@layer base {
+    body {
+        color:aqua;
+    }
+    p {
+        color: rgb(45,32,244);
+    }
+    span {
+        color: black;
+    }
+}

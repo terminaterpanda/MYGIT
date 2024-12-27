@@ -289,7 +289,7 @@ def one_hot_encoding(word, word_to_index1):
 
 one_hot_encoding("자연어", word_to_index1)
 
-from keras_preprocessing.text import Tokenizer
+from keras_preprocessing import Tokenizer
 
 tokenizer = Tokenizer()
 text2 = "위에서는 원-핫 인코딩을 이해하기 위해 파이썬으로 직접 코드를 작성하였지만, 케라스는 원-핫 인코딩을 수행하는 유용한 도구"
@@ -415,3 +415,63 @@ print("훈련용 샘플의 개수 : {}".format(len(newsdata.data)))
 print("총 주제의 개수 : {}".format(len(newsdata.target_names)))
 print(newsdata.target_names)
 
+import torch 
+print(torch.backends.mps.is_built())
+#mps를 use가 가능하다.
+print(torch.backends.mps.is_available())
+#torch.cuda.is_avaliable()과 동일.
+
+import numpy as np
+
+timesteps = 10
+input_dim = 4
+hidden_units = 8
+
+inputs = np.random.random((timesteps, input_dim))
+
+hidden_state_t = np.zeros((hidden_units,))
+
+print(hidden_state_t)
+
+Wx = np.random.random((hidden_units, input_dim))
+Wh = np.random.random((hidden_units, hidden_units))
+
+b = np.random.random((hidden_units,))
+
+print(np.shape(Wx))
+print(np.shape(Wh))
+print(np.shape(b))
+
+file_Path1 = " /Users/iseong-yong/Desktop/files/kowiki-20241201-stub-articles.xml"
+import torch 
+import torch.nn as nn
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+#tensor -> torch()
+b = 64
+learning_rate = 1e-78
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.3, ), (0.7,))
+    
+])
+train_dataset = datasets.MNIST(root="/data", train = True,transform=transform,
+                               download=True)
+train_loader = DataLoader(train_dataset, batch_size=b, shuffle=True)
+
+class SimpleCNN(nn.Module):
+    def __init__(self):
+        super(SimpleCNN, self).__init__()
+        self.conv1 = nn.Conv2d(1, 64, kernel_size=4, padding=3)
+        self.conv2 = nn.Conv2d(64, 256, kernel_size=4, padding=1)
+        self.conv3 = nn.Conv2d(256, 1, kernel_size=4, padding=1)
+        self.relu = nn.ReLU()
+        
+    def forward(self, x, t):
+        x = self.relu(self.conv1(x))
+        x = self.relu(self.conv2(x))
+        x = self.relu(self.conv3(x))
+        return x
+    
+mps_device = torch.device("mps")
+#기본 setting finish.
