@@ -22,11 +22,6 @@ print("test_data_length: ", len(test_data))
 
 image, label = train_data[0]
 
-plt.imshow(image.squeeze().numpy(), cmap="gray")
-#image_squeeze를 사용해서 차원을 축소하거나 늘려서 2차원의 이미지로 변환시키는 function
-plt.title('label : %s' % label)
-plt.show()
-
 train_loader = DataLoader(dataset = train_data,batch_size = batch_size,shuffle = True)
 test_loader = DataLoader(dataset = test_data, batch_size = batch_size, shuffle = True)
 

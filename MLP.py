@@ -66,3 +66,19 @@ X_train = pad_sequences(X_encoded, maxlen=max_len, padding='post')
 y_train = np.array(y_train)
 print('패딩 결과 :')
 print(X_train)
+
+import numpy as np
+class tf_idf():
+    def __init__(self, args, value):
+        self.args = args
+        if not args:
+            raise ValueError("error imported")
+        self.value = value
+        
+    def calculate(self, tf):
+        self.tf = tf
+        a = np.log(self.value / 1+self.args)
+        return tf/a
+
+    
+        

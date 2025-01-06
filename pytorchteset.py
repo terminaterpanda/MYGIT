@@ -18,4 +18,3 @@ class mymodelname():
     pass
 
 model = mymodelname()
-

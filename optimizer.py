@@ -53,4 +53,9 @@ plt.plot([0,0], [1.0, 0.0], ":") #가운데 점선을 추가
 plt.title("sigmoid_function")
 plt.show()
 
+import random
+p = random(0, 1)
+loss = -np.sum(y*np.log(p) + (1-y)*np.log(1-p))
+#cross-entropy(실제 분포와 예측확률분포의 차이를 계산하는 함수)
+
 

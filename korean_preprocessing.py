@@ -1,10 +1,7 @@
+#korean preprocessing
 sent = "전희원님이 개발한 PyKoSpacing은 띄어쓰기가 되어있지 않은 문장을 띄어쓰기를 한 문장으로 변환해주는 패키지입니다. PyKoSpacing은 대용량 코퍼스를 학습하여 만들어진 띄어쓰기 딥 러닝 모델로 준수한 성능을 가지고 있습니다."
 new_sent = sent.replace(" ",'')
 print(new_sent)
-
-from pykospacing import Spacing
-spacing = Spacing()
-kospacing_sent = spacing(new_sent)
 
 #spacing -> 한국어 띄어쓰기 LLM
 import urllib.request
@@ -23,8 +20,7 @@ for document in corpus:
         print(document)
         i = i+1
     if i == 3:
-        break
-
+        break    
 word_extractor = WordExtractor()
 word_extractor.train(corpus)
 word_score_table = word_extractor.extract()
@@ -51,13 +47,12 @@ print(emoticon_normalize('앜ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ
 #num_repeats를 use하여 반복하는 것들 2회반복으로 줄임.
 
 #사용자 사전 추가하기(단어를 토큰화하는 방법을 알려주는 사전)
-from ckonlpy.tag import Twitter
+from konlpy.tag import Twitter
 twitter = Twitter()
 twitter.morphs("은경이는 사무실로 갔습니다.")
 twitter.add_dictionary("은경이", "Noun")
 twitter.morphs("은경이는 사무실로 갔습니다.")
 #언어 model -> 단어 시퀸스(문장)에 확률을 할당하는 model
-
 #probs using language model
 #SLM
 #n-gram
@@ -115,8 +110,8 @@ corpus = [
 tfidfv = TfidfVectorizer().fit(corpus)
 print(tfidfv.transform(corpus).toarray())
 print(tfidfv.vocabulary_)
-
 #cosine similarity
+
 import numpy as np
 from numpy import dot
 from numpy.linalg import norm
@@ -131,5 +126,3 @@ def cos_sim(a,b):
 import numpy as np
 d = np.array(5)
 #스칼라 -> 하나의 실수값으로 이루어진 tensor.
-
-

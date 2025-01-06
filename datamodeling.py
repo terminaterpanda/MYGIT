@@ -980,5 +980,18 @@ class Occurnetwork:
         
         if value not in self.edges:
             self.edges[value] = []
-
-   
+import numpy
+class lossfunction():
+    def __init__(self, name, args):
+        self.name = name
+        self.lists = []
+        self.lists.append(args)
+        return len(self.lists)
+    def connenction(self):
+        loss = 1e-34
+                
+        
+import requests
+res = requests.get("")
+res.raise_for_status()
+print("code :", res.status_code)
