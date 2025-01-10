@@ -29,7 +29,7 @@ if not os.path.exists(validation_dir):
 test_dir = os.path.join(base_dir, "test")
 if not os.path.exists(test_dir):
     os.mkdir(test_dir) 
-
+#os.path.join(a, b) -> 경로를 만듬 a/b 이런 식으로::))
 #각 클래스 이름에 대해 반복문을 수행
 for clss in classes_list:
     train_class_dir = os.path.join(train_dir, clss)
@@ -63,6 +63,8 @@ splited/
 -----class
 """  
 
+#디렉토리 초기 설정.
+
 import math
 
 for clss in classes_list:
@@ -81,14 +83,13 @@ for clss in classes_list:
         shutil.copyfile(src, dst)
         
     validation_fnames = fnames[train_size:(validation_size + train_size)]
-    print("validation_size(',clss,'): ", len(validation_fnames))
+    print(f"validation_size({clss}): ", len(validation_fnames))
     for fname in validation_fnames:
         src = os.path.join(path, fname)
         dst = os.path.join(os.path.join(validation_dir, clss), fname)
         shutil.copyfile(src, dst)
         
-    test_fnames = fnames[(train_size + validation_size):
-        (validation_size + train_size + test_size)]
+    test_fnames = fnames[(train_size + validation_size):(validation_size + train_size + test_size)]
     print("test_size(',clss,'): ", len(test_fnames))
     for fname in test_fnames:
         src = os.path.join(path, fname)
@@ -223,14 +224,166 @@ torch.save(base.state_dict(), "baseline.pt")
 
 
 data_transforms = {
-    "train" : transforms.Compose([
+    "train" : transforms.Compose([ #transforms.compose == 이미지의 data의 전처리, 과정에서 사용되는 메서드
+        transforms.Resize([64, 64]), #이미지의 크기를 64*64로 조정
+        transforms.RandomHorizontalFlip(), #이미지를 상호 무작위로 좌우 반전(괄호 안에 p를 사용해서 반전되는 이미지의 비율을 설정이 가능함)
+        transforms.RandomVerticalFlip(),
+        transforms.RandomCrop(52), 
+        transforms.ToTensor(), #이미지를 tensor 형태로 변환후 모든 숫자를 0에서 1사이로 변경하는 것
+        transforms.Normalize([0.485, 0.456, 0.406],
+                             [0.229, 0.224, 0.225])
+    ]),# normalize == "정규화를 시행" + 평균값과 표준편차값이 필요하므로 []첫번째 대괄호는 r, g, b 평균값을 의미하며 두번째 대괄호는 r,g,b 표준편차값을 의미함
+    "val": transforms.Compose([
         transforms.Resize([64, 64]),
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomVerticalFlip()
-        
-    ])
+        transforms.RandomCrop(52),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]) #검증에 사용되는 data == 똑같이 적용함.
 }
-        
+
+data_dir = "./splited" #폴더경로를 설정
+image_datasets = {x: ImageFolder(root=os.path.join(data_dir, x),
+                                 transform=data_transforms[x]) for x in ['train', "val"]}
+#imagefolder == "데이터셋을 불러오는 메서드"(root == 데이터를 불러올 경로를 설정) #transform_base로 옵션 지정
+dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x],
+                                              batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+               #dataloaders == 불러온 이미지 데이터를 주어진 조건에 따라서 미니 배치 단위로 분리하는 역할을 수행
+               for x in ['train', "val"]}
+dataset_sizes = {x: len(image_datasets[x]) for x in ["train", "val"]}
+#데이터셋 사이즈 개수를 각각 저장
+class_names = image_datasets['train'].classes
+from torchvision import models
+
+resnet = models.resnet50(pretrained = True) #사전학습된 모델을 불러와서 use.
+#pretrained = true(학습 파라미터값을 가져옴) / false = (랜덤으로 파라미터값 설정)
+num_ftrs = resnet.fc.in_features #마지막 layer입력 채널 수를 저장
+resnet.fc = nn.Linear(num_ftrs, 33) #마지막 레이어를 교체(출력수를 33으로 맞춤)
+resnet = resnet.to(DEVICE) #모델을 할당
+
+criterion = nn.CrossEntropyLoss()
+#손실함수 설정하는 변수
+optimizer_ft = optim.Adam(filter(lambda p: p.requires_grad,
+                                 resnet.parameters()), lr = 0.001)
+#optimizer == adam으로 설정
+from torch.optim import lr_scheduler
+
+exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
+#steplr 메서드 == epoch에 따라 학습률 조정(step_size = 7, gamma = 0.1은 7epoch마다 0.1씩 곱해서 learning rate를 감소시킴.   
     
+""" pretrained 모델 freeze하기"""
+ 
+ct = 0 #해당 layer가 몇번째인지를 나타내는 변수 ct를 0으로 초기화
+for child in resnet.children():
+    #모델의 자식 모듈을 반복 가능한 객체로 반환
+    ct += 1 #for 문 한번 반복한 후 다음 layer로 넘어가도록 +1을 해줌(ct값을 1만큼 증가시킴)
+    if ct < 6:
+        for param in child.parameters(): #child.parameters == 각 layer의 parameter tensor를 의미
+            param.requires_grad = False #false를 지정하여 몇개를 업데이트 하지않게 설정(LAYER 번호가 6보다 작은 경우에)
+            
+def train_resnet(model, criterion, optimizer, sceduler, num_epochs = 25):
+    
+    best_model_wts = copy.deepcopy(model.state_dict())
+    best_acc = 0.0
+    
+    for epoch in range(num_epochs):
+        print("--------------------epoch{}-----------------".format(epoch+1))
+        since = time.time()
         
-        
+        for phase in ["train", "val"]:
+            if phase == "train":
+                model.train()
+            else:
+                model.eval()
+                
+            running_loss = 0.0
+            running_corrects = 0.0
+            
+            for inputs, labels in dataloaders[phase]:
+                inputs = inputs.to(DEVICE)
+                labels = labels.to(DEVICE)
+                
+                optimizer = zero_grad()
+                
+                with torch.set_grad_enabled(phase == "train"):
+                    outputs = model(inputs)
+                    _, preds = torch.max(outputs, 1)
+                    loss = criterion(outputs, labels)
+                    
+                    if phase == "train":
+                        loss.backward()
+                        optimizer.step()
+                        
+                running_loss += loss.item() * inputs.size(0)
+                running_corrects += torch.sum(preds == labels.data)
+            if phase == "train":
+                sceduler.step()
+                l_r = [x["lr"] for x  in optimzer_ft.param_groups]
+                print("learning rate: ",l_r)
+                
+            epoch_loss = running_loss/dataset_sizes[phase]
+            epoch_acc = running_corrects.double()/dataset_sizes[phase]
+            
+            print("{} Loss: {:.4f} Acc: {:.4f}".format(phase, epoch_loss, epoch_acc))
+            
+            if phase == "val" and epoch_acc > best_acc:
+                best_acc = epoch_acc #best_acc == "eppoch_acc"를 설정하여 제일 좋은 정확도를 가져오기
+                best_model_wts = copy.deepcopy(model.state_dict())
+                #copy.deepcopy == "깊은 복사를 이용해서 모델 설정"
+                
+        time_elapsed = time.time() - since
+        print("completed in {:.0f}m {:.0f}s".format(time_elapsed // 60, time_elapsed % 60))
+    print("Best val Acc: {:4f}".format(best_acc))
+    
+    
+    model.load_state_dict(best_model_wts)
+    
+    return model
+
+model_resnet50 = train_resnet(resnet, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=EPOCH)
+#모델을 파인튜닝
+torch.save(model_resnet50, "resnet50.pt")
+#학습이 완료된 model을 resnet50.pt라는 이름의 파일로 저장.
+
+#모델을 evaluate.
+
+transform_base = transforms.Compose([transforms.Resize([64, 64]),
+                                     transforms.ToTensor()])
+test_base = ImageFolder(root = "./splitted/test",
+                        transform=transform_base)
+
+
+test_loader_base = torch.utils.data.DataLoader(test_base,
+                                               batch_size=BATCH_SIZE,
+                                               shuffle=True,
+                                               num_workers=4)
+#test data의 dataloader을 생성 -> 전처리를 똑같이 시행.
+
+transfrom_resNet = transforms.Compose([
+    transforms.Resize([64, 64]),
+    transforms.RandomCrop(52),
+    transforms.ToTensor(),
+    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+])
+
+test_resNet = ImageFolder(root="./splitted/test",
+                          transform=transfrom_resNet)
+
+test_loader_resNet = torch.utils.data.DataLoader(test_resNet,
+                                                 batch_size=BATCH_SIZE,
+                                                 shuffle=True,
+                                                 num_workers=4)
+
+
+#transfer learning model 성능 평가
+
+baseline = torch.load("baseline.pt")
+baseline.eval()
+test_loss, test_accuracy = evaluate(baseline, test_loader)
+
+print("baseline test acc: ", test_accuracy)
+
+resnet50=torch.load("resnet50.pt")
+resnet50.eval()
+test_loss, test_accuracy = evaluate(resnet50, test_loader_resNet)
+
+print("resnet test acc: ", test_accuracy)
