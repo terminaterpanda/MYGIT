@@ -110,3 +110,4 @@ class TextCNN(nn.Module):
         
         return test_loss, accuracy
     
+    

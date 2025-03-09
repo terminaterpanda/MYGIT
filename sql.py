@@ -7,10 +7,11 @@ from dotenv import load_dotenv
 load_dotenv()
 import os 
 DB_URL = DB_URL = os.getenv("DB_URL")
-engine = create_engine(DB_URL, echo=True)
+engine = create_engine(DB_URL, echo=True) #database 연결 관리 
 SessionLocal = sessionmaker(autocommit = False, autoflush=False, bind=engine)
-
+#sessionlocal == "database session make에 use."
 Base = declarative_base()
+#BASE -> 모든 모델 클래스가 상속받을 기본 class
 
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
@@ -33,3 +34,5 @@ class Todo(Base):
     owner_id = Column(Integer, ForeignKey("users.id"))
     
     owner = relationship("User", back_populates="todos")
+    
+    

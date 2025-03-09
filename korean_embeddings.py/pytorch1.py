@@ -303,6 +303,7 @@ def train_resnet(model, criterion, optimizer, sceduler, num_epochs = 25):
                 labels = labels.to(DEVICE)
                 
                 optimizer = zero_grad()
+                #초기화화하는 함수
                 
                 with torch.set_grad_enabled(phase == "train"):
                     outputs = model(inputs)

@@ -138,3 +138,5 @@ class Tokenizer:
             
         combined_vectors = self.result
         return combined_vectors, top_n_values
+
+
