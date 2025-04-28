@@ -38,7 +38,7 @@ class Tokenizer:
             raise ValueError("유니코드 데이터가 없습니다.")
         bow_unicode = [int(format(ord(char), '06d')) for char in "<BOW>"]
         eow_unicode = [int(format(ord(char), '06d')) for char in "<EOW>"]
-
+        
         processed_result = []
         for unicode_word in self.result:
             processed_word = bow_unicode + unicode_word + eow_unicode

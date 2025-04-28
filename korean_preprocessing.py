@@ -107,9 +107,6 @@ corpus = [
     'what should I do ',    
 ]
 
-tfidfv = TfidfVectorizer().fit(corpus)
-print(tfidfv.transform(corpus).toarray())
-print(tfidfv.vocabulary_)
 #cosine similarity
 
 import numpy as np

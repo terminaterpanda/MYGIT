@@ -22,7 +22,6 @@ train_data = train_data.dropna(how = "any")
 train_data['document'] = train_data['document'].str.replace('[^가-힣]',"",
                                                             regex=True)
 train_data[:5]
-
 okt = Okt()
 stopwords = ["가", "밥", "과","도"]
 tokenized_data = []

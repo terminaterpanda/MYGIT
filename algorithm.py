@@ -393,5 +393,10 @@ class quick():
         self.quick_sort_recursive(0, len(self.lists) - 1)
         return self.lists
 
-
+import numpy as np
 #8. FFT A.G
+class FFT():
+    def __init__(self, *args):
+        self.lists = [*args]
+        
+        

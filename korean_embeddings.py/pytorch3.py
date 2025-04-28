@@ -61,3 +61,4 @@ class LSTMClassifier(nn.Module):
         last_output = self.last_layer(last_output)
         #문장의 가장 마지막 단어의 output을 넣어서 확률값을 calculate
         return last_output
+    

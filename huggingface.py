@@ -109,5 +109,3 @@ class TextCNN(nn.Module):
         accuracy = 100.0 * corrects / len(itr.dataset)
         
         return test_loss, accuracy
-    
-    
